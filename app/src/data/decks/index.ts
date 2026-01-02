@@ -1,5 +1,6 @@
 import type { DeckItem } from './types';
 import { defaultDeckItems } from './default';
+import { christmasDeckItems } from './christmas';
 
 // Free tier configuration
 export const FREE_TIER_CARD_LIMIT = 50;
@@ -38,4 +39,5 @@ function createDeck(name: string, items: (string | DeckItem)[]): DeckItem[] {
 
 export const DEFAULT_DECKS: Record<string, DeckItem[]> = {
   Default: createDeck('Default', defaultDeckItems),
+  Christmas: createDeck('Christmas', christmasDeckItems),
 };

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { Button } from './ui/Button';
-import { CogIcon, BackIcon, DragHandleIcon, TrashIcon } from './ui/Icons';
+import { CogIcon, BackIcon, DragHandleIcon, TrashIcon, LockIcon } from './ui/Icons';
 import { SegmentedControl } from './ui/SegmentedControl';
 import { TeamColorButton } from './ui/TeamBadge';
 import { NumberControl, InfiniteToggleControl } from './ui/Controls';
@@ -452,7 +452,9 @@ export const Setup: React.FC = () => {
                 <Badge variant={isPremium ? 'info' : 'warning'} size="sm">
                   {isPremium
                     ? `${DEFAULT_DECKS[localDeck]?.length || 0} Words`
-                    : `${FREE_TIER_CARD_LIMIT} / ${DEFAULT_DECKS[localDeck]?.length || 0} Words`}
+                    : localDeck === 'Default'
+                      ? `${FREE_TIER_CARD_LIMIT} / ${DEFAULT_DECKS[localDeck]?.length || 0} Words`
+                      : 'Locked'}
                 </Badge>
               </div>
 
@@ -477,19 +479,34 @@ export const Setup: React.FC = () => {
               )}
 
               <div className="grid grid-cols-2 gap-2">
-                {Object.keys(DEFAULT_DECKS).map((deckName) => (
-                  <button
-                    key={deckName}
-                    onClick={() => setLocalDeck(deckName)}
-                    className={`h-14 rounded-2xl text-sm font-black tracking-wide uppercase transition-all active:scale-95 ${
-                      localDeck === deckName
-                        ? 'bg-blue-500 text-white shadow-md'
-                        : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                    } `}
-                  >
-                    {deckName}
-                  </button>
-                ))}
+                {Object.keys(DEFAULT_DECKS).map((deckName) => {
+                  const isLocked = !isPremium && deckName !== 'Default';
+                  return (
+                    <button
+                      key={deckName}
+                      onClick={() => {
+                        if (isLocked) {
+                          setPaywallTrigger('full_deck');
+                          setPaywallOpen(true);
+                        } else {
+                          setLocalDeck(deckName);
+                        }
+                      }}
+                      className={`relative h-14 rounded-2xl text-sm font-black tracking-wide uppercase transition-all active:scale-95 ${
+                        localDeck === deckName
+                          ? 'bg-blue-500 text-white shadow-md'
+                          : isLocked
+                            ? 'bg-slate-100 text-slate-400 opacity-80'
+                            : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                      } `}
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        {deckName}
+                        {isLocked && <LockIcon className="h-4 w-4" />}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
