@@ -291,9 +291,9 @@ export const ActivePlay: React.FC = () => {
         </div>
       </div>
 
-      <Overlay isOpen={isPaused} className="space-y-8 p-6">
+      <Overlay isOpen={isPaused} className="p-0">
           {view === 'PAUSED' && !showQuitConfirm && (
-            <div className="flex w-full flex-col space-y-8 p-6">
+            <div className="flex w-full flex-col items-center justify-center space-y-8 px-10 py-6">
               <h2 className="text-center text-4xl font-black text-slate-900">
                 GAME PAUSED
               </h2>
@@ -425,7 +425,7 @@ export const ActivePlay: React.FC = () => {
           )}
 
           {showQuitConfirm && (
-            <div className="flex w-full max-w-sm flex-col space-y-6 p-6">
+            <div className="flex w-full flex-col items-center justify-center space-y-6 px-10 py-6">
               <h2 className="text-center text-3xl font-black text-slate-900">
                 EXIT TO MENU?
               </h2>
