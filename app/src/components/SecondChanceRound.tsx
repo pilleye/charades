@@ -1,0 +1,268 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useGameStore } from '@/store/gameStore';
+import { soundEngine } from '@/lib/audio';
+import { wakeLockManager } from '@/lib/wakeLock';
+import { Button } from './ui/Button';
+import { TEAM_COLORS } from '@/constants';
+
+// Icons
+const DiscardIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={3}
+    stroke="currentColor"
+    className="h-8 w-8"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M6 18L18 6M6 6l12 12"
+    />
+  </svg>
+);
+
+const RecoverIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={3}
+    stroke="currentColor"
+    className="h-10 w-10"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
+    />
+  </svg>
+);
+
+const PauseIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="currentColor"
+    className="h-6 w-6"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.75 5.25v13.5m-7.5-13.5v13.5"
+    />
+  </svg>
+);
+
+export const SecondChanceRound: React.FC = () => {
+  const {
+    secondChanceQueue,
+    secondChanceIndex,
+    resolveSecondChance,
+    resetGame,
+    teams,
+    currentTeamIndex,
+  } = useGameStore();
+
+  const [isPaused, setIsPaused] = useState(false);
+  const [showQuitConfirm, setShowQuitConfirm] = useState(false);
+
+  const currentTeam = teams[currentTeamIndex];
+  const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
+
+  const currentWord = secondChanceQueue[secondChanceIndex];
+  const remaining = secondChanceQueue.length - secondChanceIndex;
+
+  useEffect(() => {
+    // Enable wake lock reactively based on pause state
+    if (isPaused) {
+      wakeLockManager.disable();
+    } else {
+      wakeLockManager.enable();
+    }
+
+    // Cleanup on unmount
+    return () => {
+      wakeLockManager.disable();
+    };
+  }, [isPaused]);
+
+  const handleRecover = () => {
+    if (isPaused) return;
+    soundEngine.playRecovery().catch(console.error);
+    resolveSecondChance(true);
+  };
+
+  const handleDiscard = () => {
+    if (isPaused) return;
+    soundEngine.playSkip().catch(console.error);
+    resolveSecondChance(false);
+  };
+
+  const togglePause = () => {
+    setIsPaused(!isPaused);
+    if (isPaused) setShowQuitConfirm(false); // Reset on close
+  };
+
+  // Dynamic Font Size
+  const getFontSize = (word: string) => {
+    if (word.length <= 6) return 'text-7xl';
+    if (word.length <= 10) return 'text-6xl';
+    if (word.length <= 14) return 'text-5xl';
+    return 'text-4xl';
+  };
+
+  return (
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-indigo-950 text-white">
+      {/* Background Decor & Team Color Mix */}
+      <div className="absolute top-0 right-0 left-0 z-0 h-40 bg-gradient-to-b from-indigo-900 to-transparent opacity-50" />
+      <div
+        className={`absolute top-1/2 left-1/2 h-[80%] w-[80%] -translate-x-1/2 -translate-y-1/2 ${teamColorBg} pointer-events-none z-0 rounded-full opacity-20 mix-blend-screen blur-[100px]`}
+      />
+
+      {/* Main Content: Column in Portrait, Row in Landscape */}
+      <div className="relative z-10 flex h-full flex-1 flex-col landscape:flex-row">
+        {/* Left/Top: Info + Word */}
+        <div className="relative flex flex-1 flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 pt-8 landscape:pt-4">
+            <div className="w-12"></div> {/* Spacer to balance Pause Button */}
+            <div className="flex flex-col items-center space-y-2">
+              <div className="text-xs font-black tracking-widest text-indigo-300 uppercase opacity-80">
+                {currentTeam.name}
+              </div>
+
+              <div className="flex flex-col items-center gap-2">
+                <h2 className="text-sm leading-none font-black tracking-widest text-indigo-400 uppercase">
+                  Second Chance
+                </h2>
+                <div className="flex items-baseline gap-2 rounded-2xl border border-indigo-500/30 bg-indigo-900/60 px-6 py-3 shadow-lg backdrop-blur-sm">
+                  <span className="text-3xl leading-none font-black text-indigo-100">
+                    {remaining}
+                  </span>
+                  <span className="text-xs font-bold tracking-wider text-indigo-400 uppercase">
+                    Words Left
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex w-12 justify-end">
+              <button
+                onClick={togglePause}
+                className="rounded-2xl border border-indigo-500/30 bg-indigo-900/50 p-3 text-indigo-300 shadow-sm transition-colors active:bg-indigo-800 active:text-white"
+              >
+                <PauseIcon />
+              </button>
+            </div>
+          </div>
+
+          {/* Word */}
+          <div className="flex flex-1 items-center justify-center px-6">
+            <div className="animate-pop-in pb-10 text-center">
+              <h1
+                className={`leading-tight font-black break-words drop-shadow-2xl ${getFontSize(currentWord)}`}
+              >
+                {currentWord}
+              </h1>
+            </div>
+          </div>
+        </div>
+
+        {/* Right/Bottom: Controls */}
+        <div className="flex h-[35vh] gap-4 p-4 landscape:h-full landscape:w-72 landscape:flex-col landscape:justify-center landscape:border-l landscape:border-indigo-900/30 landscape:pb-4">
+          {/* DISCARD Button */}
+          <button
+            onClick={handleDiscard}
+            className={`flex flex-1 touch-manipulation flex-col items-center justify-center gap-2 rounded-3xl border-b-[8px] border-slate-900 bg-slate-800 text-slate-300 transition-all active:translate-y-[8px] active:border-b-0 active:bg-slate-700`}
+          >
+            <DiscardIcon />
+            <span className="text-xl font-black tracking-wider uppercase">
+              Missed
+            </span>
+          </button>
+
+          {/* RECOVER Button */}
+          <button
+            onClick={handleRecover}
+            className={`flex flex-[1.5] touch-manipulation flex-col items-center justify-center gap-2 rounded-3xl border-b-[8px] border-indigo-700 bg-indigo-500 text-white shadow-lg shadow-indigo-900/50 transition-all active:translate-y-[8px] active:border-b-0 active:bg-indigo-600`}
+          >
+            <RecoverIcon />
+            <span className="text-2xl font-black tracking-wider uppercase">
+              Recover
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* PAUSE MENU OVERLAY */}
+      {isPaused && (
+        <div className="animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center space-y-8 bg-indigo-950/95 p-6 text-white backdrop-blur-sm">
+          {!showQuitConfirm ? (
+            <>
+              <h2 className="text-4xl font-black text-white">PAUSED</h2>
+
+              <div className="w-full max-w-sm space-y-6">
+                <Button
+                  variant="primary"
+                  size="xl"
+                  fullWidth
+                  onClick={togglePause}
+                  className="border-blue-900 bg-blue-600 shadow-blue-900"
+                >
+                  RESUME
+                </Button>
+
+                <div className="pt-4">
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    fullWidth
+                    onClick={() => setShowQuitConfirm(true)}
+                    className="bg-red-900/20 text-red-400 hover:bg-red-900/40 hover:text-red-300"
+                  >
+                    QUIT GAME
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-center text-3xl font-black text-white">
+                EXIT TO MENU?
+              </h2>
+              <p className="-mt-4 text-center font-bold text-indigo-200">
+                Current game progress will be lost.
+              </p>
+
+              <div className="w-full max-w-sm space-y-4">
+                <Button
+                  variant="danger"
+                  size="xl"
+                  fullWidth
+                  onClick={resetGame}
+                  className="border-red-900 shadow-red-900"
+                >
+                  YES, EXIT GAME
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  fullWidth
+                  onClick={() => setShowQuitConfirm(false)}
+                  className="!bg-slate-700 !text-white !shadow-[0_4px_0_0_rgba(15,23,42,1)] hover:!bg-slate-600"
+                >
+                  CANCEL
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};

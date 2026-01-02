@@ -1,0 +1,2 @@
+cd app && npm run lint -- --fix || true
+git add -A
