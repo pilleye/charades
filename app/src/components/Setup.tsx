@@ -467,7 +467,7 @@ export const Setup: React.FC = () => {
                   className="flex items-center justify-between rounded-xl bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 p-3 transition-all hover:from-yellow-100 hover:to-orange-100 active:scale-[0.98]"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">&#9733;</span>
+                    <span className="text-lg text-orange-500">&#9733;</span>
                     <span className="text-sm font-bold text-slate-700">
                       Unlock all {DEFAULT_DECKS[localDeck]?.length || 0} words
                     </span>
