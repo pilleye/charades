@@ -15,7 +15,9 @@ let package = Package(
         .package(name: "CapacitorCommunityKeepAwake", path: "../../../node_modules/@capacitor-community/keep-awake"),
         .package(name: "CapacitorFilesystem", path: "../../../node_modules/@capacitor/filesystem"),
         .package(name: "CapacitorHaptics", path: "../../../node_modules/@capacitor/haptics"),
-        .package(name: "CapacitorPreferences", path: "../../../node_modules/@capacitor/preferences")
+        .package(name: "CapacitorPreferences", path: "../../../node_modules/@capacitor/preferences"),
+        .package(name: "CapacitorSplashScreen", path: "../../../node_modules/@capacitor/splash-screen"),
+        .package(name: "CapgoNativePurchases", path: "../../../node_modules/@capgo/native-purchases")
     ],
     targets: [
         .target(
@@ -26,7 +28,9 @@ let package = Package(
                 .product(name: "CapacitorCommunityKeepAwake", package: "CapacitorCommunityKeepAwake"),
                 .product(name: "CapacitorFilesystem", package: "CapacitorFilesystem"),
                 .product(name: "CapacitorHaptics", package: "CapacitorHaptics"),
-                .product(name: "CapacitorPreferences", package: "CapacitorPreferences")
+                .product(name: "CapacitorPreferences", package: "CapacitorPreferences"),
+                .product(name: "CapacitorSplashScreen", package: "CapacitorSplashScreen"),
+                .product(name: "CapgoNativePurchases", package: "CapgoNativePurchases")
             ]
         )
     ]
