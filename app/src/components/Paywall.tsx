@@ -75,15 +75,15 @@ export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) =>
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
-              &#10003;
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-100 text-yellow-600 shadow-sm">
+              <span className="text-sm">★</span>
             </span>
             <div className="flex flex-col">
-              <span className="font-semibold text-slate-700">
+              <span className="font-black text-slate-800">
                 Only {productPrice || '$0.99'} / year
               </span>
-              <span className="text-xs text-slate-400">
-                Cancel anytime
+              <span className="text-[10px] font-black text-orange-500 uppercase tracking-wider">
+                Full Premium Access
               </span>
             </div>
           </div>
