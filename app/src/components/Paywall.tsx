@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useSubscriptionStore } from '@/store/subscriptionStore';
 import { Button } from './ui/Button';
 import { Modal } from './ui/Modal';
-import { FREE_TIER_CARD_LIMIT } from '@/data/decks';
+import { FREE_TIER_CARD_LIMIT, DEFAULT_DECKS } from '@/data/decks';
 
 interface PaywallProps {
   isOpen: boolean;
@@ -39,6 +39,9 @@ export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) =>
     ? 'Adding custom words requires'
     : `Access to more than ${FREE_TIER_CARD_LIMIT} cards requires`;
 
+  const totalWords = Object.values(DEFAULT_DECKS).reduce((acc, deck) => acc + deck.length, 0);
+  const roundedWords = Math.floor(totalWords / 100) * 100;
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="text-center">
@@ -60,7 +63,7 @@ export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) =>
               &#10003;
             </span>
             <span className="font-semibold text-slate-700">
-              Full deck with 1,400+ words
+              All decks with {roundedWords.toLocaleString()}+ words
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -75,9 +78,14 @@ export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) =>
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
               &#10003;
             </span>
-            <span className="font-semibold text-slate-700">
-              Access to all card decks
-            </span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-slate-700">
+                Only {productPrice || '$0.99'} / year
+              </span>
+              <span className="text-xs text-slate-400">
+                Cancel anytime
+              </span>
+            </div>
           </div>
         </div>
 
@@ -93,7 +101,7 @@ export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) =>
           disabled={isLoading || status === 'checking'}
           className="mb-3"
         >
-          {isLoading ? 'Processing...' : `Subscribe for ${productPrice || '$0.99'}/year`}
+          {isLoading ? 'Processing...' : 'SUBSCRIBE'}
         </Button>
 
         <button
@@ -112,7 +120,7 @@ export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) =>
         </button>
 
         <p className="mt-4 text-xs text-slate-400">
-          Subscription automatically renews yearly. Cancel anytime in Settings.
+          Subscription automatically renews yearly.
         </p>
       </div>
     </Modal>
