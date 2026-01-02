@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useSubscriptionStore } from '@/store/subscriptionStore';
 import { Button } from './ui/Button';
 import { Modal } from './ui/Modal';
+import { XMarkIcon } from './ui/Icons';
 import { FREE_TIER_CARD_LIMIT, DEFAULT_DECKS } from '@/data/decks';
 
 interface PaywallProps {
@@ -47,7 +48,14 @@ export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) =>
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="text-center">
+      <div className="relative text-center">
+        <button
+          onClick={onClose}
+          className="absolute -top-2 -left-2 p-2 text-slate-300 transition-colors hover:text-slate-500 active:scale-95"
+        >
+          <XMarkIcon className="h-7 w-7" />
+        </button>
+
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg">
           <span className="text-3xl">&#9733;</span>
         </div>
@@ -123,13 +131,6 @@ export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) =>
           className="w-full py-3 text-sm font-bold text-slate-400 transition-colors hover:text-slate-600"
         >
           {isRestoring ? 'Restoring...' : 'Restore Purchase'}
-        </button>
-
-        <button
-          onClick={onClose}
-          className="mt-2 w-full py-2 text-sm font-bold text-slate-300 transition-colors hover:text-slate-500"
-        >
-          Maybe Later
         </button>
 
         <p className="mt-4 text-xs text-slate-400">
