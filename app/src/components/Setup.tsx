@@ -481,6 +481,7 @@ export const Setup: React.FC = () => {
               <div className="grid grid-cols-2 gap-2">
                 {Object.keys(DEFAULT_DECKS).map((deckName) => {
                   const isLocked = !isPremium && deckName !== 'Default';
+                  const count = DEFAULT_DECKS[deckName]?.length || 0;
                   return (
                     <button
                       key={deckName}
@@ -492,7 +493,7 @@ export const Setup: React.FC = () => {
                           setLocalDeck(deckName);
                         }
                       }}
-                      className={`relative h-14 rounded-2xl text-sm font-black tracking-wide uppercase transition-all active:scale-95 ${
+                      className={`relative h-16 rounded-2xl text-sm font-black tracking-wide uppercase transition-all active:scale-95 ${
                         localDeck === deckName
                           ? 'bg-blue-500 text-white shadow-md'
                           : isLocked
@@ -500,9 +501,14 @@ export const Setup: React.FC = () => {
                             : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
                       } `}
                     >
-                      <div className="flex items-center justify-center gap-2">
-                        {deckName}
-                        {isLocked && <LockIcon className="h-4 w-4" />}
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="flex items-center gap-2">
+                          {deckName}
+                          {isLocked && <LockIcon className="h-4 w-4" />}
+                        </div>
+                        <span className={`text-xs font-bold ${localDeck === deckName ? 'text-blue-200' : 'text-slate-400'}`}>
+                          {count} Cards
+                        </span>
                       </div>
                     </button>
                   );
