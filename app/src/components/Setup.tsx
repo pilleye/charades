@@ -72,7 +72,7 @@ export const Setup: React.FC = () => {
   const initializeSubscription = useSubscriptionStore((s) => s.initialize);
   const isPremium = useIsPremium();
   const [paywallOpen, setPaywallOpen] = useState(false);
-  const [paywallTrigger, setPaywallTrigger] = useState<'custom_words' | 'full_deck'>('full_deck');
+  const [paywallTrigger, setPaywallTrigger] = useState<'custom_words' | 'full_deck' | 'locked_deck'>('full_deck');
 
   // Initialize subscription on mount
   React.useEffect(() => {
@@ -491,7 +491,7 @@ export const Setup: React.FC = () => {
                       key={deckName}
                       onClick={() => {
                         if (isLocked) {
-                          setPaywallTrigger('full_deck');
+                          setPaywallTrigger('locked_deck');
                           setPaywallOpen(true);
                         } else {
                           setLocalDeck(deckName);

@@ -9,7 +9,7 @@ import { FREE_TIER_CARD_LIMIT, DEFAULT_DECKS } from '@/data/decks';
 interface PaywallProps {
   isOpen: boolean;
   onClose: () => void;
-  trigger?: 'custom_words' | 'full_deck';
+  trigger?: 'custom_words' | 'full_deck' | 'locked_deck';
 }
 
 export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) => {
@@ -35,9 +35,12 @@ export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) =>
     }
   };
 
-  const triggerMessage = trigger === 'custom_words'
-    ? 'Adding custom words requires'
-    : `Access to more than ${FREE_TIER_CARD_LIMIT} cards requires`;
+  let triggerMessage = `Access to more than ${FREE_TIER_CARD_LIMIT} cards requires`;
+  if (trigger === 'custom_words') {
+    triggerMessage = 'Adding custom words requires';
+  } else if (trigger === 'locked_deck') {
+    triggerMessage = 'Access to this premium deck requires';
+  }
 
   const totalWords = Object.values(DEFAULT_DECKS).reduce((acc, deck) => acc + deck.length, 0);
   const roundedWords = Math.floor(totalWords / 100) * 100;
