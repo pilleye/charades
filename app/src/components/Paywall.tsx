@@ -101,7 +101,9 @@ export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) =>
         </div>
 
         {error && (
-          <p className="mb-4 text-sm text-red-500">{error}</p>
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-center">
+            <p className="text-xs font-bold text-red-500">{error}</p>
+          </div>
         )}
 
         <Button
