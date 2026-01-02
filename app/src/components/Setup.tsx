@@ -11,7 +11,9 @@ import { Modal } from './ui/Modal';
 import { Badge } from './ui/Badge';
 import { SafeScreen } from './ui/SafeArea';
 import { TEAM_COLORS } from '@/constants';
-import { DEFAULT_DECKS } from '@/data/decks';
+import { DEFAULT_DECKS, FREE_TIER_CARD_LIMIT } from '@/data/decks';
+import { useSubscriptionStore, useIsPremium } from '@/store/subscriptionStore';
+import { Paywall } from './Paywall';
 
 export const Setup: React.FC = () => {
   const {
@@ -65,6 +67,17 @@ export const Setup: React.FC = () => {
   // Deck State
   const [localDeck, setLocalDeck] = useState(selectedDeck);
   const [newWordInput, setNewWordInput] = useState('');
+
+  // Subscription state
+  const initializeSubscription = useSubscriptionStore((s) => s.initialize);
+  const isPremium = useIsPremium();
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [paywallTrigger, setPaywallTrigger] = useState<'custom_words' | 'full_deck'>('full_deck');
+
+  // Initialize subscription on mount
+  React.useEffect(() => {
+    initializeSubscription();
+  }, [initializeSubscription]);
 
   const [teamCount, setTeamCount] = useState(teams.length);
   const [colorPickerTeamId, setColorPickerTeamId] = useState<number | null>(
@@ -190,6 +203,12 @@ export const Setup: React.FC = () => {
   };
 
   const handleAddWord = () => {
+    // Check if premium is required for custom words
+    if (!isPremium) {
+      setPaywallTrigger('custom_words');
+      setPaywallOpen(true);
+      return;
+    }
     if (newWordInput.trim()) {
       addCustomWord(newWordInput);
       setNewWordInput('');
@@ -430,10 +449,32 @@ export const Setup: React.FC = () => {
                 <label className="text-sm font-bold text-slate-400 uppercase">
                   Card Deck
                 </label>
-                <Badge variant="info" size="sm">
-                  {DEFAULT_DECKS[localDeck]?.length || 0} Words
+                <Badge variant={isPremium ? 'info' : 'warning'} size="sm">
+                  {isPremium
+                    ? `${DEFAULT_DECKS[localDeck]?.length || 0} Words`
+                    : `${FREE_TIER_CARD_LIMIT} / ${DEFAULT_DECKS[localDeck]?.length || 0} Words`}
                 </Badge>
               </div>
+
+              {!isPremium && (
+                <button
+                  onClick={() => {
+                    setPaywallTrigger('full_deck');
+                    setPaywallOpen(true);
+                  }}
+                  className="flex items-center justify-between rounded-xl bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 p-3 transition-all hover:from-yellow-100 hover:to-orange-100 active:scale-[0.98]"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">&#9733;</span>
+                    <span className="text-sm font-bold text-slate-700">
+                      Unlock all {DEFAULT_DECKS[localDeck]?.length || 0} words
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold text-orange-500 uppercase">
+                    Premium
+                  </span>
+                </button>
+              )}
 
               <div className="grid grid-cols-2 gap-2">
                 {Object.keys(DEFAULT_DECKS).map((deckName) => (
@@ -456,6 +497,9 @@ export const Setup: React.FC = () => {
               <div className="flex items-center justify-between">
                 <label className="text-sm font-bold text-slate-400 uppercase">
                   Add Words
+                  {!isPremium && (
+                    <span className="ml-2 text-xs text-orange-500">&#9733; Premium</span>
+                  )}
                 </label>
                 <span className="text-xs font-bold text-slate-400">
                   {customWords.length} Added
@@ -468,15 +512,16 @@ export const Setup: React.FC = () => {
                   value={newWordInput}
                   onChange={(e) => setNewWordInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddWord()}
-                  placeholder="Enter word..."
-                  className="h-12 min-w-0 flex-1 rounded-xl border border-transparent bg-slate-100 px-4 text-lg font-bold text-slate-800 placeholder-slate-400 transition-all outline-none focus:bg-white focus:ring-2 focus:ring-blue-500"
+                  placeholder={isPremium ? "Enter word..." : "Premium feature..."}
+                  disabled={!isPremium}
+                  className={`h-12 min-w-0 flex-1 rounded-xl border border-transparent bg-slate-100 px-4 text-lg font-bold text-slate-800 placeholder-slate-400 transition-all outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 ${!isPremium ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
                 <Button
                   variant="secondary"
                   onClick={handleAddWord}
                   className="!h-12 shrink-0 !px-5"
                 >
-                  ADD
+                  {isPremium ? 'ADD' : '\u2605'}
                 </Button>
               </div>
 
@@ -513,6 +558,12 @@ export const Setup: React.FC = () => {
             DONE
           </Button>
         </div>
+
+        <Paywall
+          isOpen={paywallOpen}
+          onClose={() => setPaywallOpen(false)}
+          trigger={paywallTrigger}
+        />
       </SafeScreen>
     );
   }

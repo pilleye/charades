@@ -1,41 +1,7 @@
-export interface DeckItem {
-  word: string;
-  hint?: string;
-}
+import type { DeckItem } from './types';
 
-// Normalize text for smarter duplicate detection
-// "Sleeping Beauty" and "SleepingBeauty" should be treated as the same
-export function normalizeForDuplicateCheck(text: string): string {
-  return text.toLowerCase().replace(/\s+/g, '');
-}
-
-function createDeck(name: string, items: (string | DeckItem)[]): DeckItem[] {
-  const uniqueWords = new Set<string>();
-  const duplicates: string[] = [];
-  const deckItems: DeckItem[] = [];
-  items.forEach((item) => {
-    const word = typeof item === 'string' ? item : item.word;
-    const hint = typeof item === 'string' ? undefined : item.hint;
-    const normalizedWord = normalizeForDuplicateCheck(word);
-
-    if (uniqueWords.has(normalizedWord)) {
-      duplicates.push(word);
-    } else {
-      uniqueWords.add(normalizedWord);
-      deckItems.push({ word, hint });
-    }
-  });
-  if (duplicates.length > 0) {
-    console.error(
-      `[Deck Validation] Duplicate words found in deck "${name}":`,
-      duplicates
-    );
-  }
-  return deckItems;
-}
-export const DEFAULT_DECKS: Record<string, DeckItem[]> = {
-  Default: createDeck('Default', [
-    {
+export const defaultDeckItems: DeckItem[] = [
+{
       word: 'Firefly',
       hint: '2 parts. (1) Act like your hand is burned. (2) Flap arms like wings.',
     },
@@ -1452,57 +1418,4 @@ export const DEFAULT_DECKS: Record<string, DeckItem[]> = {
       word: 'Snowshoeing',
       hint: '1 word. Mime strapping two very wide, flat frames to your feet. Walk with an exaggeratedly wide stance, lifting your feet high with every step to avoid sinking into "deep snow."',
     },
-  ]),
-  'Reverse Charades': createDeck('Reverse Charades', [
-    'Bagpipes',
-    'Fiddler on the Roof',
-    'Remote Control',
-    'Madonna',
-    'Straight Jacket',
-    'Snooze Button',
-    'Boy Scout',
-    'Huddle',
-    'Caboose',
-    'Jumper Cables',
-    'Van Gogh',
-    'Magic Carpet',
-    'Graduation',
-    'Frosty the Snowman',
-    'Ice Cream Cone',
-    'Worms',
-    'Earthquake',
-    'Spider-Man',
-    'Skunk',
-    'Penguins',
-    'Tractor',
-    'Earwax',
-    'Unicorn',
-    'Ballerina',
-    'Hopscotch',
-    'Tackle',
-    'Hot Air Balloon',
-    'Good Game',
-    'Turtleneck',
-    'Couch Potato',
-    'Superman',
-    'Comb Over',
-    'Heads Up Seven Up',
-    'Siamese Twins',
-    'Mailman',
-    'Stethoscope',
-    'Paparazzi',
-    'Beehive',
-    'Lightsaber',
-    'Piggyback',
-    'Poison Ivy',
-    'Thanksgiving Dinner',
-    'Checkers',
-    'Tango',
-    'Wrinkles',
-    'Hurricane',
-    'Buddha',
-    'Drive-In Movie',
-    'Roller Skating',
-    'Butterfly',
-  ]),
-};
+];

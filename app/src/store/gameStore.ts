@@ -2,9 +2,11 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
   DEFAULT_DECKS,
-  type DeckItem,
   normalizeForDuplicateCheck,
+  FREE_TIER_CARD_LIMIT,
 } from '@/data/decks';
+import type { DeckItem } from '@/data/decks/types';
+import { useSubscriptionStore } from './subscriptionStore';
 
 export type GamePhase =
   | 'SETUP'
@@ -114,6 +116,21 @@ const shuffleArray = (array: DeckItem[]) => {
   return newArr;
 };
 
+const getEffectiveDeck = (selectedDeck: string, isPremium: boolean): DeckItem[] => {
+  const deckKey = DEFAULT_DECKS[selectedDeck] ? selectedDeck : 'Default';
+  let deckWords = DEFAULT_DECKS[deckKey] || [];
+
+  if (!isPremium) {
+    if (deckKey === 'Default') {
+      deckWords = deckWords.slice(0, FREE_TIER_CARD_LIMIT);
+    } else {
+      // Paid decks are not accessible on free tier
+      deckWords = [];
+    }
+  }
+  return deckWords;
+};
+
 export const useGameStore = create<GameState>()(
   persist(
     (set, get) => ({
@@ -204,11 +221,15 @@ export const useGameStore = create<GameState>()(
 
       startGame: () => {
         const { selectedDeck, customWords } = get();
-        const deckWords =
-          DEFAULT_DECKS[selectedDeck] || DEFAULT_DECKS['Default'] || [];
-        const customDeckItems: DeckItem[] = customWords.map((w) => ({
-          word: w,
-        }));
+        const isPremium = useSubscriptionStore.getState().status === 'active';
+
+        const deckWords = getEffectiveDeck(selectedDeck, isPremium);
+
+        // Only include custom words for premium users
+        const customDeckItems: DeckItem[] = isPremium
+          ? customWords.map((w) => ({ word: w }))
+          : [];
+
         const fullDeck = [...deckWords, ...customDeckItems];
 
         set({
@@ -263,16 +284,17 @@ export const useGameStore = create<GameState>()(
 
       drawWord: () => {
         const { availableWords, usedWords, selectedDeck, customWords } = get();
+        const isPremium = useSubscriptionStore.getState().status === 'active';
         let deck = [...availableWords];
 
         if (deck.length === 0) {
           // Reshuffle logic
           if (usedWords.length === 0) {
-            const baseDeck =
-              DEFAULT_DECKS[selectedDeck] || DEFAULT_DECKS['Default'] || [];
-            const customDeckItems: DeckItem[] = customWords.map((w) => ({
-              word: w,
-            }));
+            const baseDeck = getEffectiveDeck(selectedDeck, isPremium);
+
+            const customDeckItems: DeckItem[] = isPremium
+              ? customWords.map((w) => ({ word: w }))
+              : [];
             deck = shuffleArray([...baseDeck, ...customDeckItems]);
           } else {
             deck = shuffleArray(usedWords);
@@ -438,11 +460,13 @@ export const useGameStore = create<GameState>()(
 
       resetGame: () => {
         const { selectedDeck, customWords, teams } = get();
-        const baseDeck =
-          DEFAULT_DECKS[selectedDeck] || DEFAULT_DECKS['Default'] || [];
-        const customDeckItems: DeckItem[] = customWords.map((w) => ({
-          word: w,
-        }));
+        const isPremium = useSubscriptionStore.getState().status === 'active';
+
+        const baseDeck = getEffectiveDeck(selectedDeck, isPremium);
+
+        const customDeckItems: DeckItem[] = isPremium
+          ? customWords.map((w) => ({ word: w }))
+          : [];
 
         const resetTeams = teams.map((t) => ({ ...t, score: 0 }));
 
