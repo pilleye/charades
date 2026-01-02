@@ -158,6 +158,9 @@ export const ActivePlay: React.FC = () => {
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-50">
+      {/* Portrait-only safe area spacer for Dynamic Island */}
+      <div className="portrait-safe-area-top shrink-0 bg-slate-200" />
+
       {/* 1. Timer Bar (Always Top) - Thicker and Ticking Animation */}
 
       <div className="relative z-30 h-6 w-full shrink-0 border-b border-slate-300 bg-slate-200">
@@ -178,7 +181,7 @@ export const ActivePlay: React.FC = () => {
       <div className="relative z-10 flex flex-1 flex-col overflow-hidden landscape:flex-row">
         {/* Left/Top Section: Info + Word + Gradient */}
 
-        <div className="relative flex flex-1 flex-col overflow-hidden">
+        <div className="relative flex flex-1 flex-col overflow-hidden landscape-safe-area-left">
           {/* Ambient Team Color Background - Scoped to content area so it doesn't bleed into sidebar in landscape */}
 
           <div
@@ -262,7 +265,7 @@ export const ActivePlay: React.FC = () => {
 
         {/* Right/Bottom Section: Controls */}
         {/* Landscape: Sidebar style */}
-        <div className="relative z-20 flex h-[35vh] gap-4 p-4 landscape:h-full landscape:w-72 landscape:flex-col landscape:justify-center landscape:border-l landscape:border-slate-100 landscape:bg-white/60 landscape:pb-4 landscape:backdrop-blur-sm">
+        <div className="relative z-20 flex h-[35vh] gap-4 p-4 landscape:h-full landscape:w-72 landscape:flex-col landscape:justify-center landscape:border-l landscape:border-slate-100 landscape:bg-white/60 landscape:pb-4 landscape:backdrop-blur-sm landscape-safe-area-right">
           {/* PASS Button */}
           <button
             onClick={handleSkip}

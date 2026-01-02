@@ -18,6 +18,47 @@
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Portrait-only safe area (for progress bar below Dynamic Island) */
+@media (orientation: portrait) {
+  .portrait-safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Landscape safe areas (for Dynamic Island on sides) */
+@media (orientation: landscape) {
+  .landscape-safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  .landscape-safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Safe area inset variables as margin (for absolutely positioned elements) */
+.safe-margin-top {
+  margin-top: env(safe-area-inset-top);
+}
+@media (orientation: portrait) {
+  .portrait-safe-margin-top {
+    margin-top: env(safe-area-inset-top);
+  }
+}
+@media (orientation: landscape) {
+  .landscape-safe-margin-left {
+    margin-left: env(safe-area-inset-left);
+  }
+  .landscape-safe-margin-right {
+    margin-right: env(safe-area-inset-right);
+  }
+}
 
 /* Custom animations */
 @keyframes fadeIn {

@@ -327,7 +327,7 @@ export const Setup: React.FC = () => {
 
   if (view === 'SETTINGS') {
     return (
-      <div className="animate-fade-in-right mx-auto flex h-full w-full flex-col overflow-hidden bg-slate-50 p-6">
+      <div className="animate-fade-in-right mx-auto flex h-full w-full flex-col overflow-hidden bg-slate-50 p-6 portrait-safe-area-top landscape-safe-area-left landscape-safe-area-right">
         <header className="flex shrink-0 items-center justify-between py-4">
           <button
             onClick={() => {
@@ -517,7 +517,7 @@ export const Setup: React.FC = () => {
   }
 
   return (
-    <div className="animate-fade-in relative mx-auto flex h-full w-full flex-col overflow-hidden bg-slate-50 p-6">
+    <div className="animate-fade-in relative mx-auto flex h-full w-full flex-col overflow-hidden bg-slate-50 p-6 portrait-safe-area-top landscape-safe-area-left landscape-safe-area-right">
       {/* Header */}
       <header className="relative shrink-0 py-8 text-center">
         <h1 className="text-6xl font-black tracking-tighter text-blue-600 drop-shadow-sm">

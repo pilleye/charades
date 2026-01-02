@@ -28,7 +28,7 @@ export const ReadyCheck: React.FC = () => {
       ></div>
 
       {/* Round & Turn Info Pill */}
-      <div className="animate-fade-in absolute top-12 right-0 left-0 z-10 flex justify-center">
+      <div className="animate-fade-in absolute top-12 right-0 left-0 z-10 flex justify-center portrait-safe-margin-top">
         <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-5 py-2 shadow-sm">
           <span className="text-xs font-bold tracking-widest text-slate-500 uppercase">
             {roundLabel}

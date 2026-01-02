@@ -88,7 +88,7 @@ export const Review: React.FC = () => {
   }, 0);
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-50 p-6">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-50 p-6 portrait-safe-area-top landscape-safe-area-left landscape-safe-area-right">
       {/* Ambient Background - Top wash only */}
       <div
         className={`absolute top-[-30%] left-1/2 h-[60%] w-[150%] -translate-x-1/2 ${teamColorBg} pointer-events-none z-0 rounded-[100%] opacity-20 blur-[80px]`}

@@ -119,6 +119,9 @@ export const SecondChanceRound: React.FC = () => {
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-indigo-950 text-white">
+      {/* Portrait-only safe area spacer for Dynamic Island */}
+      <div className="portrait-safe-area-top shrink-0 bg-indigo-950" />
+
       {/* Background Decor & Team Color Mix */}
       <div className="absolute top-0 right-0 left-0 z-0 h-40 bg-gradient-to-b from-indigo-900 to-transparent opacity-50" />
       <div
@@ -128,7 +131,7 @@ export const SecondChanceRound: React.FC = () => {
       {/* Main Content: Column in Portrait, Row in Landscape */}
       <div className="relative z-10 flex h-full flex-1 flex-col landscape:flex-row">
         {/* Left/Top: Info + Word */}
-        <div className="relative flex flex-1 flex-col">
+        <div className="relative flex flex-1 flex-col landscape-safe-area-left">
           {/* Header */}
           <div className="flex items-center justify-between p-4 pt-8 landscape:pt-4">
             <div className="w-12"></div> {/* Spacer to balance Pause Button */}
@@ -174,7 +177,7 @@ export const SecondChanceRound: React.FC = () => {
         </div>
 
         {/* Right/Bottom: Controls */}
-        <div className="flex h-[35vh] gap-4 p-4 landscape:h-full landscape:w-72 landscape:flex-col landscape:justify-center landscape:border-l landscape:border-indigo-900/30 landscape:pb-4">
+        <div className="flex h-[35vh] gap-4 p-4 landscape:h-full landscape:w-72 landscape:flex-col landscape:justify-center landscape:border-l landscape:border-indigo-900/30 landscape:pb-4 landscape-safe-area-right">
           {/* DISCARD Button */}
           <button
             onClick={handleDiscard}
@@ -201,7 +204,7 @@ export const SecondChanceRound: React.FC = () => {
 
       {/* PAUSE MENU OVERLAY */}
       {isPaused && (
-        <div className="animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center space-y-8 bg-indigo-950/95 p-6 text-white backdrop-blur-sm">
+        <div className="animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center space-y-8 bg-indigo-950/95 p-6 text-white backdrop-blur-sm safe-area-top safe-area-left safe-area-right">
           {!showQuitConfirm ? (
             <>
               <h2 className="text-4xl font-black text-white">PAUSED</h2>
