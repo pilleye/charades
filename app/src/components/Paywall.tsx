@@ -82,7 +82,7 @@ export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) =>
               &#10003;
             </span>
             <span className="font-semibold text-slate-700">
-              New decks as they are released
+              All future decks included
             </span>
           </div>
           <div className="flex items-center gap-3">
