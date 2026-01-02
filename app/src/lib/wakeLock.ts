@@ -1,60 +1,37 @@
-// Wake Lock API to prevent screen from sleeping during gameplay
+// Keep Awake API to prevent screen from sleeping during gameplay
+import { KeepAwake } from '@capacitor-community/keep-awake';
 
-let wakeLock: WakeLockSentinel | null = null;
+let isKeepAwakeActive = false;
 
 export const wakeLockManager = {
   async enable(): Promise<boolean> {
-    if (!('wakeLock' in navigator)) {
-      console.warn('Wake Lock API not supported in this browser');
-      return false;
-    }
-
     try {
-      wakeLock = await navigator.wakeLock.request('screen');
-      console.log('Wake lock active');
-
-      // Re-enable wake lock when document becomes visible again
-      document.addEventListener(
-        'visibilitychange',
-        this.handleVisibilityChange
-      );
-
+      await KeepAwake.keepAwake();
+      isKeepAwakeActive = true;
+      console.log('Keep awake active');
       return true;
     } catch (error) {
-      console.error('Failed to enable wake lock:', error);
+      console.error('Failed to enable keep awake:', error);
       return false;
     }
   },
 
   async disable(): Promise<void> {
-    if (wakeLock) {
-      try {
-        await wakeLock.release();
-        wakeLock = null;
-        console.log('Wake lock released');
-      } catch (error) {
-        console.error('Failed to release wake lock:', error);
-      }
+    try {
+      await KeepAwake.allowSleep();
+      isKeepAwakeActive = false;
+      console.log('Keep awake disabled');
+    } catch (error) {
+      console.error('Failed to disable keep awake:', error);
     }
-
-    document.removeEventListener(
-      'visibilitychange',
-      this.handleVisibilityChange
-    );
   },
 
   handleVisibilityChange: async () => {
-    if (wakeLock !== null && document.visibilityState === 'visible') {
-      try {
-        wakeLock = await navigator.wakeLock.request('screen');
-        console.log('Wake lock re-enabled after visibility change');
-      } catch (error) {
-        console.error('Failed to re-enable wake lock:', error);
-      }
-    }
+    // Capacitor's keep awake handles visibility changes automatically
+    // No manual intervention needed
   },
 
   isActive(): boolean {
-    return wakeLock !== null && !wakeLock.released;
+    return isKeepAwakeActive;
   },
 };

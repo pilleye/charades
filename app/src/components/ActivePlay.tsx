@@ -5,168 +5,13 @@ import { useGameStore } from '@/store/gameStore';
 import { soundEngine } from '@/lib/audio';
 import { wakeLockManager } from '@/lib/wakeLock';
 import { Button } from './ui/Button';
+import { SkipIcon, CheckIcon, PauseIcon, CogIcon, BackIcon } from './ui/Icons';
+import { HintDisplay } from './ui/HintDisplay';
+import { SegmentedControl } from './ui/SegmentedControl';
+import { TeamBadge } from './ui/TeamBadge';
+import { NumberControl, InfiniteToggleControl } from './ui/Controls';
+import { Overlay } from './ui/Modal';
 import { TEAM_COLORS } from '@/constants';
-
-// Icons
-const SkipIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={3}
-    stroke="currentColor"
-    className="h-8 w-8"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M3 8.688c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 010 1.953l-7.108 4.062A1.125 1.125 0 013 16.81V8.688zM12.75 8.688c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 010 1.953l-7.108 4.062a1.125 1.125 0 01-1.683-.977V8.688z"
-    />
-  </svg>
-);
-
-const CheckIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={3}
-    stroke="currentColor"
-    className="h-10 w-10"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M4.5 12.75l6 6 9-13.5"
-    />
-  </svg>
-);
-
-const PauseIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={2}
-    stroke="currentColor"
-    className="h-8 w-8"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15.75 5.25v13.5m-7.5-13.5v13.5"
-    />
-  </svg>
-);
-
-const CogIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={2.5}
-    stroke="currentColor"
-    className="h-5 w-5"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.217.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.581-.495.644-.869l.214-1.281z"
-    />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-    />
-  </svg>
-);
-
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={3}
-    stroke="currentColor"
-    className="h-6 w-6"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15.75 19.5L8.25 12l7.5-7.5"
-    />
-  </svg>
-);
-
-// Internal Component for Hint Logic
-
-const HintDisplay = ({ hint }: { hint: string }) => {
-  const [showHint, setShowHint] = useState(false);
-
-  return (
-    <div className="mt-8 flex flex-col items-center">
-      {!showHint ? (
-        <button
-          onClick={() => setShowHint(true)}
-          className="animate-fade-in flex items-center gap-2 rounded-full border border-yellow-200 bg-yellow-50 px-4 py-2 text-sm font-bold text-yellow-600 transition-all hover:bg-yellow-100 active:scale-95"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            className="h-4 w-4"
-          >
-            <path d="M10 2a6 6 0 00-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 00.515 1.076 32.91 32.91 0 003.256.508 3.5 3.5 0 006.89 0 32.91 32.91 0 003.256-.508.75.75 0 00.515-1.076A11.448 11.448 0 0116 8a6 6 0 00-6-6zM8.05 14.943a33.54 33.54 0 003.9 0 2 2 0 00-3.9 0z" />
-          </svg>
-          NEED A HINT?
-        </button>
-      ) : (
-        <div className="animate-fade-in-up max-w-lg rounded-xl border border-yellow-200 bg-yellow-50/80 px-4 py-3 text-center text-sm font-medium text-yellow-800 backdrop-blur-sm">
-          <span className="mr-1 font-bold tracking-wider text-yellow-600 uppercase">
-            Hint:
-          </span>
-
-          {hint}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Reusable Segmented Control (Copied from Setup.tsx for consistency)
-const SegmentedControl = <T,>({
-  options,
-  value,
-  onChange,
-}: {
-  options: { label: string; value: T }[];
-  value: T;
-  onChange: (val: T) => void;
-}) => {
-  const activeIndex = options.findIndex((o) => o.value === value);
-  const widthPercent = 100 / options.length;
-
-  return (
-    <div className="relative flex h-12 items-center rounded-2xl border border-slate-100 bg-slate-100 p-1">
-      <div
-        className="absolute top-1 bottom-1 rounded-xl bg-white shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
-        style={{
-          width: `calc(${widthPercent}% - 0.5rem)`,
-          left: `calc(${activeIndex * widthPercent}% + 0.25rem)`,
-        }}
-      />
-      {options.map((opt) => (
-        <button
-          key={String(opt.value)}
-          onClick={() => onChange(opt.value)}
-          className={`relative z-10 flex-1 text-xs font-black tracking-wide uppercase transition-colors ${value === opt.value ? 'text-blue-600' : 'text-slate-400'}`}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
-  );
-};
 
 export const ActivePlay: React.FC = () => {
   const {
@@ -358,13 +203,12 @@ export const ActivePlay: React.FC = () => {
             {/* Center: Time (Large & Reactive) */}
 
             <div className="flex flex-col items-center justify-start">
-              {/* Team Name Badge */}
-
-              <div className="animate-fade-in mb-2 rounded-full border border-white/50 bg-white/60 px-3 py-1 shadow-sm backdrop-blur-sm">
-                <span className="block max-w-[150px] truncate text-xs leading-none font-black tracking-widest text-slate-500 uppercase">
-                  {currentTeam.name}
-                </span>
-              </div>
+              <TeamBadge 
+                name={currentTeam.name}
+                colorIndex={currentTeam.colorIndex}
+                variant="compact"
+                className="animate-fade-in mb-2"
+              />
 
               <div
                 className={`flex flex-col items-center transition-all duration-300 ${
@@ -410,7 +254,6 @@ export const ActivePlay: React.FC = () => {
               {displayWord}
             </h1>
 
-            {/* Hint Section */}
             {displayHint && hintsEnabled && (
               <HintDisplay key={displayWord} hint={displayHint} />
             )}
@@ -445,9 +288,7 @@ export const ActivePlay: React.FC = () => {
         </div>
       </div>
 
-      {/* PAUSE MENU OVERLAY */}
-      {isPaused && (
-        <div className="animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-50/95 backdrop-blur-sm">
+      <Overlay isOpen={isPaused} className="space-y-8 p-6">
           {view === 'PAUSED' && !showQuitConfirm && (
             <div className="flex w-full max-w-sm flex-col space-y-8 p-6">
               <h2 className="text-center text-4xl font-black text-slate-900">
@@ -509,160 +350,48 @@ export const ActivePlay: React.FC = () => {
               {/* Settings Content */}
               <div className="mask-fade-bottom flex-1 space-y-6 overflow-y-auto px-6 pb-4">
                 <section className="space-y-6 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
-                  {/* Duration Control */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold text-slate-400 uppercase">
-                      Round Timer
-                    </label>
-                    <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-2">
-                      <Button
-                        variant="secondary"
-                        size="md"
-                        onClick={() =>
-                          updateDurationInGame(Math.max(10, roundDuration - 10))
-                        }
-                        className="!h-12 !w-16 !px-0 text-xl"
-                      >
-                        -
-                      </Button>
-                      <div className="flex-1 text-center">
-                        <span className="text-3xl font-black text-slate-800">
-                          {roundDuration}
-                        </span>
-                        <span className="block text-xs font-bold text-slate-500">
-                          SECONDS
-                        </span>
-                      </div>
-                      <Button
-                        variant="secondary"
-                        size="md"
-                        onClick={() => updateDurationInGame(roundDuration + 10)}
-                        className="!h-12 !w-16 !px-0 text-xl"
-                      >
-                        +
-                      </Button>
-                    </div>
-                  </div>
+                  <NumberControl
+                    label="Round Timer"
+                    value={roundDuration}
+                    onDecrease={() => updateDurationInGame(Math.max(10, roundDuration - 10))}
+                    onIncrease={() => updateDurationInGame(roundDuration + 10)}
+                    unit="SECONDS"
+                  />
 
-                  {/* Skips Control */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold text-slate-400 uppercase">
-                      Skips Allowed
-                    </label>
-                    <div className="flex gap-2">
-                      <div
-                        className={`flex flex-1 items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-2 transition-opacity duration-200 ${skipsPerTurn === 'Infinite' ? 'opacity-40 grayscale' : ''}`}
-                      >
-                        <Button
-                          variant="secondary"
-                          size="md"
-                          onClick={() =>
-                            typeof skipsPerTurn === 'number' &&
-                            updateSkipsPerTurn(Math.max(0, skipsPerTurn - 1))
-                          }
-                          disabled={
-                            skipsPerTurn === 'Infinite' ||
-                            (typeof skipsPerTurn === 'number' &&
-                              skipsPerTurn <= 0)
-                          }
-                          className="!h-12 !w-14 !px-0 text-xl"
-                        >
-                          -
-                        </Button>
-                        <div className="flex-1 text-center">
-                          <span className="text-3xl font-black text-yellow-500">
-                            {skipsPerTurn === 'Infinite'
-                              ? lastSkipsValue
-                              : skipsPerTurn}
-                          </span>
-                          <span className="mt-1 block text-xs leading-none font-bold text-slate-500">
-                            PER TURN
-                          </span>
-                        </div>
-                        <Button
-                          variant="secondary"
-                          size="md"
-                          onClick={() =>
-                            typeof skipsPerTurn === 'number' &&
-                            updateSkipsPerTurn(Math.min(10, skipsPerTurn + 1))
-                          }
-                          disabled={skipsPerTurn === 'Infinite'}
-                          className="!h-12 !w-14 !px-0 text-xl"
-                        >
-                          +
-                        </Button>
-                      </div>
+                  <InfiniteToggleControl
+                    label="Skips Allowed"
+                    value={skipsPerTurn}
+                    onDecrease={() => 
+                      typeof skipsPerTurn === 'number' &&
+                      updateSkipsPerTurn(Math.max(0, skipsPerTurn - 1))
+                    }
+                    onIncrease={() =>
+                      typeof skipsPerTurn === 'number' &&
+                      updateSkipsPerTurn(Math.min(10, skipsPerTurn + 1))
+                    }
+                    onToggleInfinite={toggleInfiniteSkips}
+                    unit="PER TURN"
+                    color="yellow"
+                    lastFiniteValue={lastSkipsValue}
+                  />
 
-                      <button
-                        onClick={toggleInfiniteSkips}
-                        className={`flex w-16 items-center justify-center rounded-2xl border text-xl font-bold transition-all active:scale-95 ${skipsPerTurn === 'Infinite' ? 'border-yellow-200 bg-yellow-100 text-yellow-600 shadow-inner' : 'border-slate-200 bg-white text-slate-300 hover:border-slate-300'} `}
-                      >
-                        ∞
-                      </button>
-                    </div>
-                  </div>
+                  <InfiniteToggleControl
+                    label="Total Rounds"
+                    value={totalRounds}
+                    onDecrease={() =>
+                      typeof totalRounds === 'number' &&
+                      updateTotalRounds(Math.max(currentRound, totalRounds - 1))
+                    }
+                    onIncrease={() =>
+                      typeof totalRounds === 'number' &&
+                      updateTotalRounds(totalRounds + 1)
+                    }
+                    onToggleInfinite={toggleInfiniteRounds}
+                    unit="ROUNDS"
+                    color="indigo"
+                    lastFiniteValue={lastRoundsValue}
+                  />
 
-                  {/* Rounds Control */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold text-slate-400 uppercase">
-                      Total Rounds
-                    </label>
-                    <div className="flex gap-2">
-                      <div
-                        className={`flex flex-1 items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-2 transition-opacity duration-200 ${totalRounds === 'Infinite' ? 'opacity-40 grayscale' : ''}`}
-                      >
-                        <Button
-                          variant="secondary"
-                          size="md"
-                          onClick={() =>
-                            typeof totalRounds === 'number' &&
-                            updateTotalRounds(
-                              Math.max(currentRound, totalRounds - 1)
-                            )
-                          }
-                          disabled={
-                            totalRounds === 'Infinite' ||
-                            (typeof totalRounds === 'number' &&
-                              totalRounds <= currentRound)
-                          }
-                          className="!h-12 !w-14 !px-0 text-xl"
-                        >
-                          -
-                        </Button>
-                        <div className="flex-1 text-center">
-                          <span className="text-3xl font-black text-indigo-500">
-                            {totalRounds === 'Infinite'
-                              ? lastRoundsValue
-                              : totalRounds}
-                          </span>
-                          <span className="mt-1 block text-xs leading-none font-bold text-slate-500">
-                            ROUNDS
-                          </span>
-                        </div>
-                        <Button
-                          variant="secondary"
-                          size="md"
-                          onClick={() =>
-                            typeof totalRounds === 'number' &&
-                            updateTotalRounds(totalRounds + 1)
-                          }
-                          disabled={totalRounds === 'Infinite'}
-                          className="!h-12 !w-14 !px-0 text-xl"
-                        >
-                          +
-                        </Button>
-                      </div>
-
-                      <button
-                        onClick={toggleInfiniteRounds}
-                        className={`flex w-16 items-center justify-center rounded-2xl border text-xl font-bold transition-all active:scale-95 ${totalRounds === 'Infinite' ? 'border-indigo-200 bg-indigo-100 text-indigo-600 shadow-inner' : 'border-slate-200 bg-white text-slate-300 hover:border-slate-300'} `}
-                      >
-                        ∞
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Hints Toggle */}
                   <div className="flex flex-col gap-2 border-t border-slate-100 pt-2">
                     <label className="text-sm font-bold text-slate-400 uppercase">
                       Show Hints
@@ -721,8 +450,7 @@ export const ActivePlay: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
-      )}
+      </Overlay>
     </div>
   );
 };

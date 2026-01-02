@@ -3,117 +3,14 @@
 import React, { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { Button } from './ui/Button';
+import { CogIcon, BackIcon, DragHandleIcon, TrashIcon } from './ui/Icons';
+import { SegmentedControl } from './ui/SegmentedControl';
+import { TeamColorButton } from './ui/TeamBadge';
+import { NumberControl, InfiniteToggleControl } from './ui/Controls';
+import { Modal } from './ui/Modal';
+import { Badge } from './ui/Badge';
 import { TEAM_COLORS } from '@/constants';
 import { DEFAULT_DECKS } from '@/data/decks';
-
-// Icons
-const CogIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={2.5}
-    stroke="currentColor"
-    className="h-5 w-5"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.217.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.581-.495.644-.869l.214-1.281z"
-    />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-    />
-  </svg>
-);
-
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={3}
-    stroke="currentColor"
-    className="h-6 w-6"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15.75 19.5L8.25 12l7.5-7.5"
-    />
-  </svg>
-);
-
-const DragHandleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={2.5}
-    stroke="currentColor"
-    className="h-5 w-5 text-slate-300"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M3.75 9h16.5m-16.5 6.75h16.5"
-    />
-  </svg>
-);
-
-const TrashIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={2.5}
-    stroke="currentColor"
-    className="h-5 w-5"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M6 18L18 6M6 6l12 12"
-    />
-  </svg>
-);
-
-// Reusable Segmented Control Component
-const SegmentedControl = <T,>({
-  options,
-  value,
-  onChange,
-}: {
-  options: { label: string; value: T }[];
-  value: T;
-  onChange: (val: T) => void;
-}) => {
-  const activeIndex = options.findIndex((o) => o.value === value);
-  const widthPercent = 100 / options.length;
-
-  return (
-    <div className="relative flex h-14 items-center rounded-2xl border border-slate-100 bg-slate-100 p-1">
-      <div
-        className="absolute top-1 bottom-1 rounded-xl bg-white shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"
-        style={{
-          width: `calc(${widthPercent}% - 0.5rem)`,
-          left: `calc(${activeIndex * widthPercent}% + 0.25rem)`,
-        }}
-      />
-      {options.map((opt) => (
-        <button
-          key={String(opt.value)}
-          onClick={() => onChange(opt.value)}
-          className={`relative z-10 flex-1 text-sm font-black tracking-wide uppercase transition-colors ${value === opt.value ? 'text-blue-600' : 'text-slate-400'}`}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
-  );
-};
 
 export const Setup: React.FC = () => {
   const {
@@ -449,132 +346,36 @@ export const Setup: React.FC = () => {
 
         <div className="mask-fade-bottom flex-1 space-y-6 overflow-y-auto pb-4">
           <section className="space-y-6 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
-            {/* Duration Control */}
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-slate-400 uppercase">
-                Round Timer
-              </label>
-              <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-2">
-                <Button
-                  variant="secondary"
-                  size="md"
-                  onClick={() =>
-                    setLocalDuration(Math.max(10, localDuration - 10))
-                  }
-                  className="!h-12 !w-16 !px-0 text-xl"
-                >
-                  -
-                </Button>
-                <div className="flex-1 text-center">
-                  <span className="text-3xl font-black text-slate-800">
-                    {localDuration}
-                  </span>
-                  <span className="block text-xs font-bold text-slate-500">
-                    SECONDS
-                  </span>
-                </div>
-                <Button
-                  variant="secondary"
-                  size="md"
-                  onClick={() => setLocalDuration(localDuration + 10)}
-                  className="!h-12 !w-16 !px-0 text-xl"
-                >
-                  +
-                </Button>
-              </div>
-            </div>
+            <NumberControl
+              label="Round Timer"
+              value={localDuration}
+              onDecrease={() => setLocalDuration(Math.max(10, localDuration - 10))}
+              onIncrease={() => setLocalDuration(localDuration + 10)}
+              unit="SECONDS"
+            />
 
-            {/* Skips Control */}
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-slate-400 uppercase">
-                Skips Allowed
-              </label>
-              <div className="flex gap-2">
-                <div
-                  className={`flex flex-1 items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-2 transition-opacity duration-200 ${localSkips === 'Infinite' ? 'opacity-40 grayscale' : ''}`}
-                >
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    className="!h-12 !w-14 !px-0 text-xl"
-                    onClick={() => adjustSkips(-1)}
-                  >
-                    -
-                  </Button>
-                  <div className="flex-1 text-center">
-                    <span className="text-3xl font-black text-yellow-500">
-                      {localSkips === 'Infinite' ? lastSkipsValue : localSkips}
-                    </span>
-                    <span className="mt-1 block text-xs leading-none font-bold text-slate-500">
-                      PER TURN
-                    </span>
-                  </div>
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    className="!h-12 !w-14 !px-0 text-xl"
-                    onClick={() => adjustSkips(1)}
-                  >
-                    +
-                  </Button>
-                </div>
+            <InfiniteToggleControl
+              label="Skips Allowed"
+              value={localSkips}
+              onDecrease={() => adjustSkips(-1)}
+              onIncrease={() => adjustSkips(1)}
+              onToggleInfinite={toggleInfiniteSkips}
+              unit="PER TURN"
+              color="yellow"
+              lastFiniteValue={lastSkipsValue}
+            />
 
-                <button
-                  onClick={toggleInfiniteSkips}
-                  className={`flex w-16 items-center justify-center rounded-2xl border text-xl font-bold transition-all active:scale-95 ${localSkips === 'Infinite' ? 'border-yellow-200 bg-yellow-100 text-yellow-600 shadow-inner' : 'border-slate-200 bg-white text-slate-300 hover:border-slate-300'} `}
-                >
-                  ∞
-                </button>
-              </div>
-            </div>
+            <InfiniteToggleControl
+              label="Total Rounds"
+              value={localRounds}
+              onDecrease={() => adjustRounds(-1)}
+              onIncrease={() => adjustRounds(1)}
+              onToggleInfinite={toggleInfiniteRounds}
+              unit="ROUNDS"
+              color="indigo"
+              lastFiniteValue={lastRoundsValue}
+            />
 
-            {/* Rounds Control */}
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-slate-400 uppercase">
-                Total Rounds
-              </label>
-              <div className="flex gap-2">
-                <div
-                  className={`flex flex-1 items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-2 transition-opacity duration-200 ${localRounds === 'Infinite' ? 'opacity-40 grayscale' : ''}`}
-                >
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    className="!h-12 !w-14 !px-0 text-xl"
-                    onClick={() => adjustRounds(-1)}
-                  >
-                    -
-                  </Button>
-                  <div className="flex-1 text-center">
-                    <span className="text-3xl font-black text-indigo-500">
-                      {localRounds === 'Infinite'
-                        ? lastRoundsValue
-                        : localRounds}
-                    </span>
-                    <span className="mt-1 block text-xs leading-none font-bold text-slate-500">
-                      ROUNDS
-                    </span>
-                  </div>
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    className="!h-12 !w-14 !px-0 text-xl"
-                    onClick={() => adjustRounds(1)}
-                  >
-                    +
-                  </Button>
-                </div>
-
-                <button
-                  onClick={toggleInfiniteRounds}
-                  className={`flex w-16 items-center justify-center rounded-2xl border text-xl font-bold transition-all active:scale-95 ${localRounds === 'Infinite' ? 'border-indigo-200 bg-indigo-100 text-indigo-600 shadow-inner' : 'border-slate-200 bg-white text-slate-300 hover:border-slate-300'} `}
-                >
-                  ∞
-                </button>
-              </div>
-            </div>
-
-            {/* Second Chance Toggle */}
             <div className="flex flex-col gap-2 border-t border-slate-100 pt-2">
               <label className="text-sm font-bold text-slate-400 uppercase">
                 Second Chance Round
@@ -589,7 +390,6 @@ export const Setup: React.FC = () => {
               />
             </div>
 
-            {/* Second Chance Points (Conditional) */}
             {isSecondChanceEnabled && (
               <div className="animate-fade-in flex flex-col gap-2">
                 <label className="text-sm font-bold text-slate-400 uppercase">
@@ -607,7 +407,6 @@ export const Setup: React.FC = () => {
               </div>
             )}
 
-            {/* Hints Toggle */}
             <div className="flex flex-col gap-2 border-t border-slate-100 pt-2">
               <label className="text-sm font-bold text-slate-400 uppercase">
                 Show Hints
@@ -630,9 +429,9 @@ export const Setup: React.FC = () => {
                 <label className="text-sm font-bold text-slate-400 uppercase">
                   Card Deck
                 </label>
-                <span className="rounded-md bg-blue-50 px-2 py-1 text-xs font-bold text-blue-500">
+                <Badge variant="info" size="sm">
                   {DEFAULT_DECKS[localDeck]?.length || 0} Words
-                </span>
+                </Badge>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -730,35 +529,12 @@ export const Setup: React.FC = () => {
       <div className="mask-fade-bottom flex-1 space-y-6 overflow-y-auto pb-4">
         {/* Teams Section */}
         <section className="space-y-4 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
-          {/* Team Count Selector */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-slate-400 uppercase">
-              Number of Teams
-            </label>
-            <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-2">
-              <Button
-                variant="secondary"
-                size="md"
-                className="!h-12 !w-16 !px-0 text-xl"
-                onClick={() => setTeamCount(Math.max(2, teamCount - 1))}
-              >
-                -
-              </Button>
-              <div className="flex-1 text-center">
-                <span className="text-3xl font-black text-slate-800">
-                  {teamCount}
-                </span>
-              </div>
-              <Button
-                variant="secondary"
-                size="md"
-                className="!h-12 !w-16 !px-0 text-xl"
-                onClick={() => setTeamCount(Math.min(5, teamCount + 1))}
-              >
-                +
-              </Button>
-            </div>
-          </div>
+          <NumberControl
+            label="Number of Teams"
+            value={teamCount}
+            onDecrease={() => setTeamCount(Math.max(2, teamCount - 1))}
+            onIncrease={() => setTeamCount(Math.min(5, teamCount + 1))}
+          />
 
           {/* Team Input List */}
           <div className="space-y-3 pt-2">
@@ -786,16 +562,10 @@ export const Setup: React.FC = () => {
                           : 'transform 200ms ease-out',
                     }}
                   >
-                    {/* Color Bubble / Trigger */}
-                    <button
-                      onClick={() =>
-                        setColorPickerTeamId(isColorPickerOpen ? null : team.id)
-                      }
-                      className={`h-10 w-12 shrink-0 rounded-xl sm:h-12 sm:w-16 ${TEAM_COLORS[team.colorIndex % TEAM_COLORS.length]} flex items-center justify-center shadow-md transition-transform active:scale-95`}
-                    >
-                      {/* Optional: Indicator to show it's clickable */}
-                      <div className="h-1.5 w-1.5 rounded-full bg-white/40 sm:h-2 sm:w-2"></div>
-                    </button>
+                    <TeamColorButton
+                      colorIndex={team.colorIndex}
+                      onClick={() => setColorPickerTeamId(isColorPickerOpen ? null : team.id)}
+                    />
 
                     <input
                       type="text"
@@ -842,17 +612,10 @@ export const Setup: React.FC = () => {
         </Button>
       </div>
 
-      {/* Color Picker Modal */}
-      {colorPickerTeamId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div
-            className="animate-fade-in absolute inset-0 bg-slate-900/30 backdrop-blur-sm"
-            onClick={() => setColorPickerTeamId(null)}
-          />
-
-          {/* Modal */}
-          <div className="animate-fade-in relative w-full max-w-sm rounded-[2rem] border border-slate-100 bg-white p-6 shadow-2xl">
+      <Modal
+        isOpen={colorPickerTeamId !== null}
+        onClose={() => setColorPickerTeamId(null)}
+      >
             <div className="mb-6 text-center">
               <h3 className="text-xl font-black tracking-wide text-slate-800 uppercase">
                 Select Color
@@ -898,9 +661,7 @@ export const Setup: React.FC = () => {
             >
               Cancel
             </button>
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 };

@@ -3,25 +3,9 @@
 import React, { useState } from 'react';
 import { useGameStore, type WordResult } from '@/store/gameStore';
 import { Button } from './ui/Button';
+import { RecoverIcon } from './ui/Icons';
+import { TeamBadge } from './ui/TeamBadge';
 import { TEAM_COLORS } from '@/constants';
-
-// Reuse the same sparkle icon for consistency
-const RecoverIconSmall = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={3}
-    stroke="currentColor"
-    className="h-5 w-5"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
-    />
-  </svg>
-);
 
 export const Review: React.FC = () => {
   const {
@@ -79,7 +63,7 @@ export const Review: React.FC = () => {
         return (
           <div className="flex w-16 flex-col items-center text-inherit">
             <div className={iconContainerClass}>
-              <RecoverIconSmall />
+              <RecoverIcon />
             </div>
             <span className={labelClass}>Recovery</span>
           </div>
@@ -111,11 +95,12 @@ export const Review: React.FC = () => {
       />
 
       <header className="relative z-10 shrink-0 py-6 text-center">
-        <div className="mb-3 inline-block rounded-full border border-slate-100 bg-white px-3 py-1 shadow-sm">
-          <span className="text-xs font-black tracking-widest text-slate-500 uppercase">
-            {currentTeam.name}
-          </span>
-        </div>
+        <TeamBadge 
+          name={currentTeam.name}
+          colorIndex={currentTeam.colorIndex}
+          variant="compact"
+          className="mb-3"
+        />
         <h2 className="mb-2 text-sm font-black tracking-widest text-slate-400 uppercase">
           Round Score
         </h2>
@@ -178,7 +163,7 @@ export const Review: React.FC = () => {
                     disabled={secondChanceValue === 0}
                     className={`flex flex-col items-center justify-center gap-1 rounded-xl border-b-[3px] px-1 py-3 text-xs font-bold tracking-wider uppercase transition-all active:translate-y-[3px] active:border-b-0 ${secondChanceValue === 0 ? 'cursor-not-allowed border-slate-200 bg-slate-100 opacity-30 grayscale' : ''} ${item.status === 'SECOND_CHANCE' ? 'border-indigo-700 bg-indigo-500 text-white shadow-lg' : 'border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} `}
                   >
-                    <RecoverIconSmall />
+                    <RecoverIcon />
                     Recovery
                   </button>
 

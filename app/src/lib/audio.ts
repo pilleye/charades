@@ -1,7 +1,13 @@
-// Audio Engine using Web Audio API
+// Audio + Haptic feedback engine using Web Audio API + Capacitor Haptics
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
+  private hapticsSupported = true;
+
+  constructor() {
+    // Haptics support will be checked when first used
+  }
 
   private getContext(): AudioContext {
     // If context is missing or closed, create a new one
@@ -33,8 +39,40 @@ class SoundEngine {
     return ctx;
   }
 
+  private async playHaptic(type: 'success' | 'recovery' | 'skip' | 'countdown' | 'buzzer' | 'tick', isGo?: boolean) {
+    if (!this.hapticsSupported) return;
+    
+    try {
+      console.log(`Attempting ${type} haptic feedback`);
+      switch (type) {
+        case 'success':
+          await Haptics.notification({ type: NotificationType.Success });
+          break;
+        case 'recovery':
+          await Haptics.impact({ style: ImpactStyle.Medium });
+          break;
+        case 'skip':
+          await Haptics.impact({ style: ImpactStyle.Light });
+          break;
+        case 'countdown':
+          await Haptics.impact({ style: isGo ? ImpactStyle.Heavy : ImpactStyle.Light });
+          break;
+        case 'buzzer':
+          await Haptics.notification({ type: NotificationType.Error });
+          break;
+        case 'tick':
+          await Haptics.impact({ style: ImpactStyle.Light });
+          break;
+      }
+      console.log(`${type} haptic completed`);
+    } catch (err) {
+      console.warn(`Haptics failed for ${type}, disabling:`, err);
+      this.hapticsSupported = false;
+    }
+  }
+
   public async resume() {
-    // Explicit resume helper
+    // Explicit resume helper for audio context
     const ctx = this.getContext();
     if (ctx.state === 'suspended') {
       console.log(`Explicit resume called. Current state: ${ctx.state}`);
@@ -48,8 +86,13 @@ class SoundEngine {
   }
 
   public async playSuccess() {
-    console.log('Attempting to play SUCCESS sound');
+    console.log('Playing SUCCESS sound + haptic');
+    
+    // Play haptic feedback (don't await to avoid blocking audio)
+    this.playHaptic('success');
+    
     try {
+      // Play audio
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
 
@@ -59,22 +102,25 @@ class SoundEngine {
       this.playTone(783.99, 'sine', t + 0.1, 0.4);
       console.log('SUCCESS sound dispatched');
     } catch (err) {
-      console.error('Failed to play success sound:', err);
+      console.error('Failed to play success feedback:', err);
     }
   }
 
   public async playRecovery() {
-    console.log('Attempting to play RECOVERY sound');
+    console.log('Playing RECOVERY sound + haptic');
+    
+    // Play haptic feedback (don't await to avoid blocking audio)
+    this.playHaptic('recovery');
+    
     try {
+      // Play audio
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
 
       // Recovery "Power Up" sound
-      // Fast upward glissando + sparkle
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
-      // Slide up from C5 to C6
       osc.type = 'sine';
       osc.frequency.setValueAtTime(523.25, t);
       osc.frequency.exponentialRampToValueAtTime(1046.5, t + 0.15);
@@ -89,20 +135,23 @@ class SoundEngine {
       osc.stop(t + 0.4);
 
       // "Ding" accent at the end
-      this.playTone(1567.98, 'triangle', t + 0.1, 0.4, 0.1); // G6 high ping
+      this.playTone(1567.98, 'triangle', t + 0.1, 0.4, 0.1);
       console.log('RECOVERY sound dispatched');
     } catch (err) {
-      console.error('Failed to play recovery sound:', err);
+      console.error('Failed to play recovery feedback:', err);
     }
   }
 
   public async playSkip() {
-    console.log('Attempting to play SKIP sound');
+    console.log('Playing SKIP sound + haptic');
     try {
+      // Play haptic feedback
+      await this.playHaptic('skip');
+      
+      // Play audio
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
 
-      // A quick sliding pitch down "whoosh"
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
@@ -117,50 +166,51 @@ class SoundEngine {
       gain.connect(ctx.destination);
       osc.start(t);
       osc.stop(t + 0.2);
-      console.log('SKIP sound dispatched');
     } catch (err) {
-      console.error('Failed to play skip sound:', err);
+      console.error('Failed to play skip feedback:', err);
     }
   }
 
   public async playCountdown(isGo: boolean = false) {
-    console.log(`Attempting to play COUNTDOWN sound (isGo: ${isGo})`);
+    console.log(`Playing COUNTDOWN sound + haptic (isGo: ${isGo})`);
     try {
+      // Play haptic feedback
+      await this.playHaptic('countdown', isGo);
+      
+      // Play audio
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
 
       if (isGo) {
         // GO! Sound: Mario Kart Style
-        // High energy, harmonized square waves
-        // C6 (1046.5) + E6 (1318.5)
         this.playTone(1046.5, 'square', t, 0.6, 0.15);
         this.playTone(1318.51, 'square', t, 0.6, 0.15);
       } else {
-        // 3-2-1 Sound: Softer, distinct blip (Woodblock-ish sine)
-        // C5 (523.25)
+        // 3-2-1 Sound: Softer, distinct blip
         this.playTone(523.25, 'sine', t, 0.15, 0.3);
       }
-      console.log('COUNTDOWN sound dispatched');
     } catch (err) {
-      console.error('Failed to play countdown sound:', err);
+      console.error('Failed to play countdown feedback:', err);
     }
   }
 
   public async playBuzzer() {
-    console.log('Attempting to play BUZZER sound');
+    console.log('Playing BUZZER sound + haptic');
     try {
+      // Play haptic feedback
+      await this.playHaptic('buzzer');
+      
+      // Play audio
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
       const duration = 0.6;
 
-      // Create a master gain/filter graph for a cleaner sound
       const masterGain = ctx.createGain();
       const filter = ctx.createBiquadFilter();
 
-      // Lowpass filter to round off the sharp edges of square waves
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(600, t); // Start muffled
-      filter.frequency.linearRampToValueAtTime(200, t + duration); // Close filter
+      filter.frequency.setValueAtTime(600, t);
+      filter.frequency.linearRampToValueAtTime(200, t + duration);
 
       masterGain.gain.setValueAtTime(0.3, t);
       masterGain.gain.setValueAtTime(0.3, t + duration - 0.1);
@@ -169,18 +219,14 @@ class SoundEngine {
       filter.connect(masterGain);
       masterGain.connect(ctx.destination);
 
-      // Oscillator 1: Main body (Square wave)
-      // Pitch drops slightly to signify "Time Down" / "Stop"
       const osc1 = ctx.createOscillator();
       osc1.type = 'square';
       osc1.frequency.setValueAtTime(140, t);
       osc1.frequency.exponentialRampToValueAtTime(80, t + duration);
 
-      // Oscillator 2: Sub-oscillator for weight (Sine)
-      // Adds fundamental bass without harshness
       const osc2 = ctx.createOscillator();
       osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(138, t); // Slight detune
+      osc2.frequency.setValueAtTime(138, t);
       osc2.frequency.exponentialRampToValueAtTime(78, t + duration);
 
       osc1.connect(filter);
@@ -190,24 +236,24 @@ class SoundEngine {
       osc1.stop(t + duration);
       osc2.start(t);
       osc2.stop(t + duration);
-      console.log('BUZZER sound dispatched');
     } catch (err) {
-      console.error('Failed to play buzzer sound:', err);
+      console.error('Failed to play buzzer feedback:', err);
     }
   }
 
   public async playTick() {
-    // console.log('Attempting to play TICK sound'); // Commented out to reduce noise
     try {
+      // Play haptic feedback (silent for tick to avoid spam)
+      await this.playHaptic('tick');
+      
+      // Play audio
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
 
-      // Very short blip
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
       osc.frequency.setValueAtTime(800, t);
-      // Quieter tick
       gain.gain.setValueAtTime(0.02, t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
 
@@ -216,7 +262,7 @@ class SoundEngine {
       osc.start(t);
       osc.stop(t + 0.05);
     } catch (err) {
-      console.error('Failed to play tick sound:', err);
+      console.error('Failed to play tick feedback:', err);
     }
   }
 

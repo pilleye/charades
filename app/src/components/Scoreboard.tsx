@@ -3,116 +3,11 @@
 import React, { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { Button } from './ui/Button';
+import { HomeIcon } from './ui/Icons';
+import { RankBadge } from './ui/Badge';
+import { StatusIndicator } from './ui/StatusIndicator';
+import { Overlay } from './ui/Modal';
 import { TEAM_COLORS } from '@/constants';
-
-// --- Icons ---
-const HomeIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={2}
-    stroke="currentColor"
-    className="h-6 w-6"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-    />
-  </svg>
-);
-
-const RankBadge = ({ rank, isDark }: { rank: number; isDark: boolean }) => {
-  const baseClasses =
-    'w-10 h-10 rounded-full flex items-center justify-center font-black text-lg shadow-sm';
-
-  if (rank === 0)
-    return (
-      <div
-        className={`${baseClasses} border-2 border-yellow-500 bg-yellow-400 text-yellow-900`}
-      >
-        1
-      </div>
-    );
-  if (rank === 1)
-    return (
-      <div
-        className={`${baseClasses} border-2 border-slate-400 bg-slate-300 text-slate-800`}
-      >
-        2
-      </div>
-    );
-  if (rank === 2)
-    return (
-      <div
-        className={`${baseClasses} border-2 border-orange-400 bg-orange-300 text-orange-900`}
-      >
-        3
-      </div>
-    );
-
-  return (
-    <span
-      className={`text-xl font-black ${isDark ? 'text-slate-500' : 'text-slate-400'} opacity-60`}
-    >
-      #{rank + 1}
-    </span>
-  );
-};
-
-const StatusIcon = ({
-  played,
-  isDark,
-}: {
-  played: boolean;
-  isDark: boolean;
-}) => {
-  if (played) {
-    return (
-      <div
-        className={`flex items-center gap-1 rounded-lg px-2 py-1 ${isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700'}`}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className="h-4 w-4"
-        >
-          <path
-            fillRule="evenodd"
-            d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-            clipRule="evenodd"
-          />
-        </svg>
-        <span className="text-[10px] font-bold tracking-wide uppercase">
-          Done
-        </span>
-      </div>
-    );
-  }
-  return (
-    <div
-      className={`flex items-center gap-1 rounded-lg px-2 py-1 ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-        className="h-4 w-4"
-      >
-        <path
-          fillRule="evenodd"
-          d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z"
-          clipRule="evenodd"
-        />
-      </svg>
-      <span className="text-[10px] font-bold tracking-wide uppercase">
-        Waiting
-      </span>
-    </div>
-  );
-};
 
 export const Scoreboard: React.FC = () => {
   const {
@@ -238,7 +133,7 @@ export const Scoreboard: React.FC = () => {
                   </h3>
                   {!isGameComplete && (
                     <div className="flex">
-                      <StatusIcon
+                      <StatusIndicator
                         played={hasPlayedThisRound}
                         isDark={isDarkMode}
                       />
@@ -296,11 +191,11 @@ export const Scoreboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Exit Confirmation Overlay */}
-      {showExitConfirm && (
-        <div
-          className={`absolute inset-0 z-50 ${isDarkMode ? 'bg-slate-900/95' : 'bg-slate-50/95'} animate-fade-in flex flex-col items-center justify-center space-y-8 p-6 backdrop-blur-sm`}
-        >
+      <Overlay 
+        isOpen={showExitConfirm} 
+        isDark={isDarkMode}
+        className="space-y-8 p-6"
+      >
           <h2 className={`text-3xl font-black ${textMainClass} text-center`}>
             EXIT TO MENU?
           </h2>
@@ -324,8 +219,7 @@ export const Scoreboard: React.FC = () => {
               CANCEL
             </Button>
           </div>
-        </div>
-      )}
+      </Overlay>
     </div>
   );
 };
