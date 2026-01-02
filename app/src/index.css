@@ -11,51 +11,67 @@
   }
 }
 
-/* Custom utilities for app-like behavior */
-.safe-area-top {
+/* ===========================================
+   Safe Area Utilities for Dynamic Island
+   =========================================== */
+
+/*
+ * Composite utility for full-screen content:
+ * - Uses max() to ensure at least base padding (1.5rem) even without safe area
+ * - Portrait: top padding for Dynamic Island
+ * - Landscape: left/right padding based on device orientation
+ */
+.safe-screen {
   padding-top: env(safe-area-inset-top);
-}
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-.safe-area-left {
-  padding-left: env(safe-area-inset-left);
-}
-.safe-area-right {
-  padding-right: env(safe-area-inset-right);
+  padding-left: max(env(safe-area-inset-left), 1.5rem);
+  padding-right: max(env(safe-area-inset-right), 1.5rem);
 }
 
-/* Portrait-only safe area (for progress bar below Dynamic Island) */
+/*
+ * Composite utility for overlays/modals:
+ * - Uses max() to ensure at least base padding even without safe area
+ */
+.safe-overlay {
+  padding-top: env(safe-area-inset-top);
+  padding-left: max(env(safe-area-inset-left), 1.5rem);
+  padding-right: max(env(safe-area-inset-right), 1.5rem);
+}
+
+/*
+ * Portrait-only top spacer (for progress bars that should be flush in landscape)
+ */
 @media (orientation: portrait) {
-  .portrait-safe-area-top {
+  .safe-top-spacer {
     padding-top: env(safe-area-inset-top);
   }
 }
 
-/* Landscape safe areas (for Dynamic Island on sides) */
+/*
+ * Landscape-only side padding (for content areas in landscape split view)
+ * Uses max() to ensure minimum padding of 1rem
+ */
 @media (orientation: landscape) {
-  .landscape-safe-area-left {
-    padding-left: env(safe-area-inset-left);
+  .safe-landscape-left {
+    padding-left: max(env(safe-area-inset-left), 1rem);
   }
-  .landscape-safe-area-right {
-    padding-right: env(safe-area-inset-right);
+  .safe-landscape-right {
+    padding-right: max(env(safe-area-inset-right), 1rem);
   }
 }
 
-/* Safe area inset variables as margin (for absolutely positioned elements) */
-.safe-margin-top {
-  margin-top: env(safe-area-inset-top);
-}
+/*
+ * Margin variants for absolutely positioned elements
+ */
 @media (orientation: portrait) {
-  .portrait-safe-margin-top {
+  .safe-margin-top {
     margin-top: env(safe-area-inset-top);
   }
 }
 @media (orientation: landscape) {
-  .landscape-safe-margin-left {
+  .safe-margin-left {
     margin-left: env(safe-area-inset-left);
   }
-  .landscape-safe-margin-right {
+  .safe-margin-right {
     margin-right: env(safe-area-inset-right);
   }
 }

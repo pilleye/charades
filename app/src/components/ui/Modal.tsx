@@ -47,7 +47,7 @@ export const Overlay: React.FC<OverlayProps> = ({
 
   return (
     <div
-      className={`animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center safe-area-top safe-area-left safe-area-right ${
+      className={`animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center safe-overlay ${
         isDark ? 'bg-slate-900/95' : 'bg-slate-50/95'
       } backdrop-blur-sm ${className}`}
     >

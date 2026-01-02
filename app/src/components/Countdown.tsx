@@ -81,7 +81,7 @@ export const Countdown: React.FC = () => {
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-50">
       {/* Pause Button (Top Right) - with safe area for Dynamic Island */}
-      <div className="absolute top-4 right-4 z-20 portrait-safe-margin-top landscape-safe-margin-right">
+      <div className="absolute top-4 right-4 z-20 safe-margin-top safe-margin-right">
         <button
           onClick={togglePause}
           className="rounded-2xl border border-slate-200 bg-white p-3 text-slate-400 shadow-sm transition-colors active:bg-slate-50 active:text-slate-900"
@@ -117,7 +117,7 @@ export const Countdown: React.FC = () => {
 
       {/* PAUSE MENU OVERLAY */}
       {isPaused && (
-        <div className="animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center space-y-8 bg-slate-50/95 p-6 backdrop-blur-sm safe-area-top safe-area-left safe-area-right">
+        <div className="animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center space-y-8 bg-slate-50/95 p-6 backdrop-blur-sm safe-overlay">
           {!showQuitConfirm ? (
             <>
               <h2 className="text-4xl font-black text-slate-900">

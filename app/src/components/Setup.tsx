@@ -9,6 +9,7 @@ import { TeamColorButton } from './ui/TeamBadge';
 import { NumberControl, InfiniteToggleControl } from './ui/Controls';
 import { Modal } from './ui/Modal';
 import { Badge } from './ui/Badge';
+import { SafeScreen } from './ui/SafeArea';
 import { TEAM_COLORS } from '@/constants';
 import { DEFAULT_DECKS } from '@/data/decks';
 
@@ -327,7 +328,7 @@ export const Setup: React.FC = () => {
 
   if (view === 'SETTINGS') {
     return (
-      <div className="animate-fade-in-right mx-auto flex h-full w-full flex-col overflow-hidden bg-slate-50 p-6 portrait-safe-area-top landscape-safe-area-left landscape-safe-area-right">
+      <SafeScreen className="animate-fade-in-right mx-auto flex h-full w-full flex-col overflow-hidden bg-slate-50 py-6">
         <header className="flex shrink-0 items-center justify-between py-4">
           <button
             onClick={() => {
@@ -512,12 +513,12 @@ export const Setup: React.FC = () => {
             DONE
           </Button>
         </div>
-      </div>
+      </SafeScreen>
     );
   }
 
   return (
-    <div className="animate-fade-in relative mx-auto flex h-full w-full flex-col overflow-hidden bg-slate-50 p-6 portrait-safe-area-top landscape-safe-area-left landscape-safe-area-right">
+    <SafeScreen className="animate-fade-in relative mx-auto flex h-full w-full flex-col overflow-hidden bg-slate-50 py-6">
       {/* Header */}
       <header className="relative shrink-0 py-8 text-center">
         <h1 className="text-6xl font-black tracking-tighter text-blue-600 drop-shadow-sm">
@@ -662,6 +663,6 @@ export const Setup: React.FC = () => {
               Cancel
             </button>
       </Modal>
-    </div>
+    </SafeScreen>
   );
 };

@@ -65,7 +65,7 @@ export const Scoreboard: React.FC = () => {
 
   return (
     <div
-      className={`flex h-full w-full flex-col ${containerClass} relative p-6 transition-colors duration-500 portrait-safe-area-top landscape-safe-area-left landscape-safe-area-right`}
+      className={`flex h-full w-full flex-col ${containerClass} relative py-6 transition-colors duration-500 safe-screen`}
     >
       {/* Background Decor for Round Complete */}
       {isDarkMode && (
