@@ -347,7 +347,7 @@ export const Setup: React.FC = () => {
 
   if (view === 'SETTINGS') {
     return (
-      <SafeScreen className="animate-fade-in-right mx-auto flex h-full w-full flex-col overflow-hidden bg-slate-50 py-6">
+      <SafeScreen className="animate-fade-in-right flex h-full w-full flex-col overflow-hidden bg-slate-50 py-6">
         <header className="flex shrink-0 items-center justify-between py-4">
           <button
             onClick={() => {
@@ -482,6 +482,10 @@ export const Setup: React.FC = () => {
                 {Object.keys(DEFAULT_DECKS).map((deckName) => {
                   const isLocked = !isPremium && deckName !== 'Default';
                   const count = DEFAULT_DECKS[deckName]?.length || 0;
+                  const displayCount = (deckName === 'Default' && !isPremium) 
+                    ? `${FREE_TIER_CARD_LIMIT} / ${count}`
+                    : count;
+
                   return (
                     <button
                       key={deckName}
@@ -507,7 +511,7 @@ export const Setup: React.FC = () => {
                           {isLocked && <LockIcon className="h-4 w-4" />}
                         </div>
                         <span className={`text-xs font-bold ${localDeck === deckName ? 'text-blue-200' : 'text-slate-400'}`}>
-                          {count} Cards
+                          {displayCount} Cards
                         </span>
                       </div>
                     </button>
@@ -592,7 +596,7 @@ export const Setup: React.FC = () => {
   }
 
   return (
-    <SafeScreen className="animate-fade-in relative mx-auto flex h-full w-full flex-col overflow-hidden bg-slate-50 py-6">
+    <SafeScreen className="animate-fade-in relative flex h-full w-full flex-col overflow-hidden bg-slate-50 py-6">
       {/* Header */}
       <header className="relative shrink-0 py-8 text-center">
         <h1 className="text-6xl font-black tracking-tighter text-blue-600 drop-shadow-sm">
