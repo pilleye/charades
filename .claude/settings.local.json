@@ -4,7 +4,8 @@
       "Bash(npm install:*)",
       "Bash(npm run lint)",
       "Bash(bun install:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(bun run build:*)"
     ],
     "deny": [],
     "ask": []
