@@ -53,7 +53,26 @@ export const ActivePlay: React.FC = () => {
     autoStart: !isPaused,
     onTick: (rem) => {
       updateTimer(rem);
-      if (rem > 0) playTick();
+      
+      if (rem > 0) {
+        // Audio Logic:
+        // Quiet (0.02) until 10s
+        // Gradually louder (up to 0.15) from 10s to 1s
+        // Pitch jump (800 -> 1200) from 5s
+        
+        let volume = 0.02;
+        let freq = 800;
+        
+        if (rem <= 10) {
+          volume = 0.02 + (11 - rem) * 0.015; // 0.035 at 10s, 0.17 at 1s
+        }
+        
+        if (rem <= 5) {
+          freq = 800 + (6 - rem) * 100; // 900 at 5s, 1300 at 1s
+        }
+
+        playTick(freq, volume);
+      }
     },
     onFinish: () => {
       playTimeUp();
@@ -109,7 +128,7 @@ export const ActivePlay: React.FC = () => {
   const isWarning = turnTimeRemaining <= 10 && !isCritical;
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-50">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-100">
       {/* Portrait-only safe area spacer for Dynamic Island */}
       <div className="safe-top-spacer shrink-0 bg-slate-200" />
 
@@ -136,7 +155,7 @@ export const ActivePlay: React.FC = () => {
           {/* Ambient Team Color Background - Scoped to content area so it doesn't bleed into sidebar in landscape */}
 
           <div
-            className={`absolute top-1/2 left-1/2 h-[60vmin] w-[60vmin] -translate-x-1/2 -translate-y-1/2 ${teamColorBg} pointer-events-none z-0 rounded-full opacity-25 blur-[80px]`}
+            className={`absolute top-1/2 left-1/2 h-[60vmin] w-[60vmin] -translate-x-1/2 -translate-y-1/2 ${teamColorBg} pointer-events-none z-0 rounded-full opacity-40 blur-[100px]`}
           />
 
           {/* Header Row (Skips, Time, Pause) */}

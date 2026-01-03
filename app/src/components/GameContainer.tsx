@@ -6,7 +6,7 @@ interface Props {
 
 export const GameContainer: React.FC<Props> = ({ children }) => {
   return (
-    <main className="relative h-full w-full overflow-hidden bg-slate-50">
+    <main className="relative h-full w-full overflow-hidden bg-slate-100">
       {/* Inner wrapper - full width in portrait, constrained in landscape for readability */}
       <div className="relative flex h-full w-full flex-col">
         {children}

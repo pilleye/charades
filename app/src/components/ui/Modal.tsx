@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 
 interface ModalProps {
   isOpen: boolean;
@@ -17,8 +18,8 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div
         className={`animate-fade-in absolute inset-0 bg-slate-900/30 backdrop-blur-sm ${backdropClassName}`}
         onClick={onClose}
@@ -26,7 +27,8 @@ export const Modal: React.FC<ModalProps> = ({
       <div className={`animate-fade-in relative w-full max-w-sm rounded-[2rem] border border-slate-100 bg-white p-6 shadow-2xl ${className}`}>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -45,13 +47,14 @@ export const Overlay: React.FC<OverlayProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
-      className={`animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center safe-overlay ${
+      className={`animate-fade-in fixed inset-0 z-[100] flex flex-col items-center justify-center safe-overlay ${
         isDark ? 'bg-slate-900/95' : 'bg-slate-50/95'
       } backdrop-blur-sm ${className}`}
     >
       {children}
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -67,9 +67,13 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
       });
     }
 
-    const candidates = newHistory
+    const skippedCandidates = wordsPlayed
       .filter((w) => w.status === WordStatus.SECOND_CHANCE)
-      .map((w) => w.word);
+      .map((w) => w.originalItem || { word: w.word });
+
+    const candidates = activeWord 
+      ? [activeWord, ...skippedCandidates] 
+      : skippedCandidates;
 
     if (secondChanceEnabled && candidates.length > 0) {
       set({
@@ -149,7 +153,8 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
 
     const { turn } = gameState;
     const { secondChanceQueue, secondChanceIndex, wordsPlayed } = turn;
-    const currentWord = secondChanceQueue[secondChanceIndex];
+    const currentItem = secondChanceQueue[secondChanceIndex];
+    const currentWord = currentItem.word;
     
     const newHistory = wordsPlayed.map((w) =>
       w.word === currentWord

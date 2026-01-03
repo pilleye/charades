@@ -97,9 +97,9 @@ export const Review: React.FC = () => {
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-50 py-6 safe-screen">
-      {/* Ambient Background - Top wash only */}
+      {/* Header Background Glow */}
       <div
-        className={`absolute top-[-30%] left-1/2 h-[60%] w-[150%] -translate-x-1/2 ${teamColorBg} pointer-events-none z-0 rounded-[100%] opacity-20 blur-[80px]`}
+        className={`absolute top-[-30%] left-1/2 h-[60%] w-[150%] -translate-x-1/2 ${teamColorBg} pointer-events-none z-0 rounded-[100%] opacity-20 blur-[100px]`}
       />
 
       <header className="relative z-10 shrink-0 py-6 text-center">

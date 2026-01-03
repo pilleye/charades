@@ -18,8 +18,12 @@ export function useGameAudio() {
     soundEngine.playCountdown(true);
   }, []);
 
-  const playTick = useCallback(() => {
-    soundEngine.playTick();
+  const playReadyBeep = useCallback(() => {
+    soundEngine.playCountdown(false);
+  }, []);
+
+  const playTick = useCallback((freq?: number, volume?: number) => {
+    soundEngine.playTick(freq, volume);
   }, []);
 
   return {
@@ -27,6 +31,7 @@ export function useGameAudio() {
     playSkip,
     playTimeUp,
     playCountdown,
+    playReadyBeep,
     playTick,
   };
 }

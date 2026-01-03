@@ -169,11 +169,11 @@ class SoundEngine {
 
       if (isGo) {
         // GO! Sound: Mario Kart Style
-        this.playTone(1046.5, 'square', t, 0.6, 0.15);
-        this.playTone(1318.51, 'square', t, 0.6, 0.15);
+        this.playTone(1046.5, 'square', t, 0.6, 0.4);
+        this.playTone(1318.51, 'square', t, 0.6, 0.4);
       } else {
-        // 3-2-1 Sound: Softer, distinct blip
-        this.playTone(523.25, 'sine', t, 0.15, 0.3);
+        // 3-2-1 Sound: Loud, distinct blip
+        this.playTone(523.25, 'sine', t, 0.2, 0.5);
       }
     } catch (err) {
       console.error('Failed to play countdown feedback:', err);
@@ -226,7 +226,7 @@ class SoundEngine {
     }
   }
 
-  public async playTick() {
+  public async playTick(freq: number = 800, volume: number = 0.02) {
     try {
       // Play haptic feedback (silent for tick to avoid spam)
       await this.playHaptic('tick');
@@ -238,14 +238,14 @@ class SoundEngine {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
-      osc.frequency.setValueAtTime(800, t);
-      gain.gain.setValueAtTime(0.02, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(volume, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(t);
-      osc.stop(t + 0.05);
+      osc.stop(t + 0.1);
     } catch (err) {
       console.error('Failed to play tick feedback:', err);
     }

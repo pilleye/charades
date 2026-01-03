@@ -6,7 +6,7 @@ import { Button } from './ui/Button';
 import { HomeIcon } from './ui/Icons';
 import { RankBadge } from './ui/Badge';
 import { StatusIndicator } from './ui/StatusIndicator';
-import { Overlay } from './ui/Modal';
+import { ConfirmationModal } from './ui/ConfirmationModal';
 import { TEAM_COLORS } from '@/constants';
 
 export const Scoreboard: React.FC = () => {
@@ -43,9 +43,8 @@ export const Scoreboard: React.FC = () => {
   };
 
   const getMainTitle = () => {
-    if (isGameComplete) return 'GAME OVER';
-    if (isRoundComplete) return 'ROUND COMPLETE';
-    return 'LEADERBOARD';
+    if (isGameComplete) return 'RESULTS';
+    return 'STANDINGS';
   };
 
   // Sort logic for display, but we need original index for "Played" status
@@ -65,8 +64,11 @@ export const Scoreboard: React.FC = () => {
 
   return (
     <div
-      className={`flex h-full w-full flex-col ${containerClass} relative py-6 transition-colors duration-500 safe-screen`}
+      className={`flex h-full w-full flex-col ${containerClass} relative transition-colors duration-500 overflow-hidden`}
     >
+      {/* Top safe area spacer to match ActivePlay */}
+      <div className="safe-top-spacer shrink-0" />
+
       {/* Background Decor for Round Complete */}
       {isDarkMode && (
         <>
@@ -75,33 +77,43 @@ export const Scoreboard: React.FC = () => {
         </>
       )}
 
-      <header className="relative z-10 flex shrink-0 items-center justify-center py-6 text-center">
-        <div className="flex flex-col items-center">
-          <h1
-            className={`text-3xl font-black tracking-widest uppercase ${textMainClass}`}
-          >
-            {getMainTitle()}
-          </h1>
-          <p
-            className={`${textSubClass} mt-2 text-sm font-bold tracking-wide uppercase ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200/50'} rounded-full px-3 py-1`}
-          >
-            {getHeaderText()}
-          </p>
-        </div>
+      <header className="relative z-10 flex shrink-0 flex-col p-4 pt-4">
+        <div className="flex w-full items-start justify-between">
+          <div className="flex flex-col items-start pt-2">
+            <h1
+              className={`text-3xl font-black tracking-[0.1em] uppercase ${textMainClass} drop-shadow-sm`}
+            >
+              {getMainTitle()}
+            </h1>
+            
+            <div className="mt-3">
+              <p
+                className={`${textSubClass} text-[10px] font-black tracking-[0.2em] uppercase ${
+                  isDarkMode ? 'bg-slate-800' : 'bg-slate-200/50'
+                } rounded-full px-5 py-2 shadow-sm whitespace-nowrap`}
+              >
+                {getHeaderText()}
+              </p>
+            </div>
+          </div>
 
-        {/* Subtle Exit Button Top Right */}
-        <div className="absolute top-1/2 right-0 mt-2 -translate-y-1/2">
-          <button
-            onClick={() => setShowExitConfirm(true)}
-            className="p-3 text-slate-400 transition-colors hover:text-red-400"
-            aria-label="Exit Game"
-          >
-            <HomeIcon />
-          </button>
+          <div className="flex justify-end pt-2">
+            <button
+              onClick={() => setShowExitConfirm(true)}
+              className={`rounded-2xl border shadow-sm transition-all p-3 active:scale-95 ${
+                isDarkMode 
+                  ? 'border-slate-700 bg-slate-800 text-slate-400 active:bg-slate-700 active:text-white' 
+                  : 'border-slate-200 bg-white text-slate-400 active:bg-slate-50 active:text-slate-900'
+              }`}
+              aria-label="Exit Game"
+            >
+              <HomeIcon className="h-8 w-8" />
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="mask-fade-y relative z-10 flex-1 space-y-4 overflow-y-auto px-1 pb-4">
+      <div className="mask-fade-y relative z-10 flex-1 space-y-4 overflow-y-auto px-4 pt-4 pb-4">
         {sortedTeams.map((team, rank) => {
           // A team has played this round if their original index is <= the current index
           // (Since currentTeamIndex points to the one who just finished)
@@ -159,7 +171,7 @@ export const Scoreboard: React.FC = () => {
         })}
       </div>
 
-      <div className="relative z-10 mt-4 flex shrink-0 flex-col items-center gap-4">
+      <div className="relative z-10 mt-4 flex shrink-0 flex-col items-center gap-4 px-6">
         {!isGameComplete && (
           <div
             className={`${textSubClass} text-xs font-medium ${isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'} rounded-full border px-4 py-2 tracking-wide uppercase`}
@@ -168,7 +180,7 @@ export const Scoreboard: React.FC = () => {
           </div>
         )}
 
-        <div className="w-full">
+        <div className="w-full pb-8">
           <Button
             variant={
               isGameComplete
@@ -191,35 +203,14 @@ export const Scoreboard: React.FC = () => {
         </div>
       </div>
 
-      <Overlay 
-        isOpen={showExitConfirm} 
+      <ConfirmationModal
+        isOpen={showExitConfirm}
+        onClose={() => setShowExitConfirm(false)}
+        onConfirm={resetGame}
+        title="EXIT TO MENU?"
+        message="Current game progress will be lost."
         isDark={isDarkMode}
-        className="space-y-8 p-6"
-      >
-          <h2 className={`text-3xl font-black ${textMainClass} text-center`}>
-            EXIT TO MENU?
-          </h2>
-          <p className={`${textSubClass} -mt-4 text-center font-bold`}>
-            Current game progress will be lost.
-          </p>
-
-          <div className="w-full max-w-sm space-y-4">
-            <Button variant="danger" size="xl" fullWidth onClick={resetGame}>
-              YES, EXIT GAME
-            </Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              fullWidth
-              onClick={() => setShowExitConfirm(false)}
-              className={
-                isDarkMode ? 'bg-slate-700 text-slate-200 shadow-slate-900' : ''
-              }
-            >
-              CANCEL
-            </Button>
-          </div>
-      </Overlay>
+      />
     </div>
   );
 };

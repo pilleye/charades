@@ -41,12 +41,12 @@ export const Countdown: React.FC = () => {
   const currentTeam = teams[currentTeamIndex];
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
 
-  const { playCountdown, playTick } = useGameAudio();
+  const { playCountdown, playReadyBeep } = useGameAudio();
 
   const { remaining: count, start, pause } = useTimer({
     initialTime: 3,
     autoStart: true,
-    onTick: () => playTick(),
+    onTick: () => playReadyBeep(),
     onFinish: () => {
       playCountdown();
       setTimeout(() => {
@@ -54,6 +54,13 @@ export const Countdown: React.FC = () => {
       }, 800);
     },
   });
+
+  // Initial beep for '3'
+  useEffect(() => {
+    if (isCountdown && !isPaused) {
+      playReadyBeep();
+    }
+  }, [isCountdown, isPaused, playReadyBeep]);
 
   useEffect(() => {
     if (isPaused) pause();
@@ -63,7 +70,7 @@ export const Countdown: React.FC = () => {
   if (!isCountdown) return null;
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-50">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-100">
       {/* Pause Button (Top Right) - with safe area for Dynamic Island */}
       <div className="absolute top-4 right-4 z-20 safe-margin-top safe-margin-right">
         <button
@@ -76,7 +83,7 @@ export const Countdown: React.FC = () => {
 
       {/* Ambient background glow */}
       <div
-        className={`absolute top-1/2 left-1/2 h-[60vmin] w-[60vmin] -translate-x-1/2 -translate-y-1/2 ${teamColorBg} pointer-events-none z-0 rounded-full opacity-25 blur-[80px]`}
+        className={`absolute top-1/2 left-1/2 h-[60vmin] w-[60vmin] -translate-x-1/2 -translate-y-1/2 ${teamColorBg} pointer-events-none z-0 rounded-full opacity-40 blur-[100px]`}
       />
 
       {/* Main Countdown Display */}

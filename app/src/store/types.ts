@@ -46,7 +46,7 @@ export interface TurnData {
   skipsRemaining: GameLimit;
   activeWord: DeckItem | null;
   wordsPlayed: WordResult[];
-  secondChanceQueue: string[];
+  secondChanceQueue: DeckItem[];
   secondChanceIndex: number;
 }
 

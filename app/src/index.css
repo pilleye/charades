@@ -29,12 +29,12 @@
 
 /*
  * Composite utility for overlays/modals:
- * - Only adds safe area insets (content handles its own base padding)
+ * - Uses max() to ensure at least base padding (1.5rem) even without safe area
  */
 .safe-overlay {
   padding-top: env(safe-area-inset-top);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
+  padding-left: max(env(safe-area-inset-left), 1.5rem);
+  padding-right: max(env(safe-area-inset-right), 1.5rem);
 }
 
 /*

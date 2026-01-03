@@ -45,7 +45,7 @@ export const Setup: React.FC = () => {
 
   if (view === 'SETTINGS') {
     return (
-      <SafeScreen className="animate-fade-in-right flex h-full w-full flex-col overflow-hidden bg-slate-50 py-6">
+      <SafeScreen className="animate-fade-in-right flex h-full w-full flex-col overflow-hidden bg-slate-100 py-6">
         <header className="flex shrink-0 items-center justify-between py-4">
           <button onClick={() => setView('LOBBY')} className="-ml-2 p-2 text-slate-400">
             <BackIcon />
@@ -88,7 +88,7 @@ export const Setup: React.FC = () => {
   }
 
   return (
-    <SafeScreen className="animate-fade-in relative flex h-full w-full flex-col overflow-hidden bg-slate-50 py-6">
+    <SafeScreen className="animate-fade-in relative flex h-full w-full flex-col overflow-hidden bg-slate-100 py-6">
       <header className="relative shrink-0 py-8 text-center">
         <h1 className="text-6xl font-black tracking-tighter text-blue-600">CHARADES</h1>
       </header>

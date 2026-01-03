@@ -20,11 +20,11 @@ export const ReadyCheck: React.FC = () => {
 
   return (
     <div
-      className={`relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-slate-50 p-8`}
+      className={`relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-slate-100 p-8`}
     >
       {/* Ambient background glow - Smaller and centered to fade before edges */}
       <div
-        className={`absolute top-1/2 left-1/2 h-[60vmin] w-[60vmin] -translate-x-1/2 -translate-y-1/2 ${teamColorBg} pointer-events-none z-0 rounded-full opacity-25 blur-[80px]`}
+        className={`absolute top-1/2 left-1/2 h-[60vmin] w-[60vmin] -translate-x-1/2 -translate-y-1/2 ${teamColorBg} pointer-events-none z-0 rounded-full opacity-40 blur-[100px]`}
       ></div>
 
       {/* Round & Turn Info Pill */}

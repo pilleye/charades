@@ -27,3 +27,18 @@ export const TEAM_TEXT_COLORS = [
   'text-rose-500',
   'text-sky-500',
 ];
+
+export const TEAM_BORDER_COLORS = [
+  'border-cyan-500',
+  'border-pink-500',
+  'border-lime-500',
+  'border-violet-500',
+  'border-orange-500',
+  'border-red-500',
+  'border-emerald-500',
+  'border-amber-500',
+  'border-fuchsia-500',
+  'border-indigo-500',
+  'border-rose-500',
+  'border-sky-500',
+];

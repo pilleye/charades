@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { useGameStore, GamePhase, TurnSubPhase } from '@/store/gameStore';
 import { soundEngine } from '@/lib/audio';
@@ -8,6 +6,7 @@ import { TEAM_COLORS } from '@/constants';
 import { SkipIcon, RecoverIcon, PauseIcon } from './ui/Icons';
 import { getWordFontSize } from '@/lib/typography';
 import { PauseMenuOverlay } from './ui/PauseMenuOverlay';
+import { HintDisplay } from './ui/HintDisplay';
 
 export const SecondChanceRound: React.FC = () => {
   const {
@@ -17,6 +16,7 @@ export const SecondChanceRound: React.FC = () => {
     togglePause,
     teams,
     currentTeamIndex,
+    hintsEnabled,
   } = useGameStore();
 
   const isSecondChance = gameState.phase === GamePhase.ACTIVE_TURN && gameState.subPhase === TurnSubPhase.SECOND_CHANCE;
@@ -29,7 +29,9 @@ export const SecondChanceRound: React.FC = () => {
   const currentTeam = teams[currentTeamIndex];
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
 
-  const currentWord = secondChanceQueue[secondChanceIndex];
+  const currentItem = secondChanceQueue[secondChanceIndex];
+  const displayWord = currentItem?.word || '';
+  const displayHint = currentItem?.hint;
   const remaining = secondChanceQueue.length - secondChanceIndex;
 
   // Wake Lock Management
@@ -97,13 +99,17 @@ export const SecondChanceRound: React.FC = () => {
           </div>
 
           {/* Word */}
-          <div className="flex flex-1 items-center justify-center px-6">
-            <div className="animate-pop-in pb-10 text-center">
+          <div className="flex flex-1 flex-col items-center justify-center px-6">
+            <div className="animate-pop-in text-center">
               <h1
-                className={`leading-tight font-black break-words drop-shadow-2xl ${getWordFontSize(currentWord)}`}
+                className={`leading-tight font-black break-words drop-shadow-2xl ${getWordFontSize(displayWord)}`}
               >
-                {currentWord}
+                {displayWord}
               </h1>
+
+              {displayHint && hintsEnabled && (
+                <HintDisplay key={displayWord} hint={displayHint} isDark />
+              )}
             </div>
           </div>
         </div>

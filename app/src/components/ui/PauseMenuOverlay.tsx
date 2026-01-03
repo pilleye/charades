@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from './Button';
 
 interface PauseMenuOverlayProps {
@@ -52,9 +53,9 @@ export const PauseMenuOverlay: React.FC<PauseMenuOverlayProps> = ({
         onQuit();
     };
 
-    return (
+    return createPortal(
         <div
-            className={`animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center space-y-8 p-6 ${bgClass} safe-overlay`}
+            className={`animate-fade-in fixed inset-0 z-[100] flex flex-col items-center justify-center space-y-8 p-6 ${bgClass} safe-overlay`}
         >
             {!showQuitConfirm ? (
                 <>
@@ -127,6 +128,7 @@ export const PauseMenuOverlay: React.FC<PauseMenuOverlayProps> = ({
                     </div>
                 </>
             )}
-        </div>
+        </div>,
+        document.body
     );
 };

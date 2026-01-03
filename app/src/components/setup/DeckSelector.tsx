@@ -64,16 +64,16 @@ export const DeckSelector: React.FC<DeckSelectorProps> = ({
 
       <div className="flex flex-col gap-3 border-t border-slate-100 pt-2">
         <label className="text-sm font-bold uppercase text-slate-400">Custom Words</label>
-        <div className="flex gap-2">
+        <div className="flex w-full items-center gap-2">
           <input
             type="text"
             value={newWordInput}
             onChange={(e) => setNewWordInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAddWord()}
-            placeholder={isPremium ? "Enter word..." : "Premium only"}
-            className="h-12 flex-1 rounded-xl bg-slate-100 px-4 font-bold text-slate-800 outline-none"
+            placeholder="Type a custom word..."
+            className="h-12 min-w-0 flex-1 rounded-xl bg-slate-100 px-4 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <Button variant="secondary" onClick={handleAddWord} className="!h-12">ADD</Button>
+          <Button variant="secondary" onClick={handleAddWord} className="!h-12 shrink-0">ADD</Button>
         </div>
         
         <div className="flex flex-wrap gap-2">

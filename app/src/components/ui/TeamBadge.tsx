@@ -1,5 +1,5 @@
 import React from 'react';
-import { TEAM_COLORS } from '@/constants';
+import { TEAM_COLORS, TEAM_BORDER_COLORS, TEAM_TEXT_COLORS } from '@/constants';
 
 interface TeamBadgeProps {
   name: string;
@@ -15,11 +15,13 @@ export const TeamBadge: React.FC<TeamBadgeProps> = ({
   variant = 'default',
 }) => {
   const teamColor = TEAM_COLORS[colorIndex % TEAM_COLORS.length];
+  const teamBorder = TEAM_BORDER_COLORS[colorIndex % TEAM_BORDER_COLORS.length];
+  const teamText = TEAM_TEXT_COLORS[colorIndex % TEAM_TEXT_COLORS.length];
 
   if (variant === 'compact') {
     return (
-      <div className={`inline-block rounded-full border border-white/50 bg-white/60 px-3 py-1 shadow-sm backdrop-blur-sm ${className}`}>
-        <span className="block max-w-[150px] truncate text-xs leading-none font-black tracking-widest text-slate-500 uppercase">
+      <div className={`inline-block rounded-full border-2 bg-white/60 px-3 py-1 shadow-sm backdrop-blur-sm ${teamBorder} ${className}`}>
+        <span className={`block max-w-[150px] truncate text-xs leading-none font-black tracking-widest uppercase ${teamText}`}>
           {name}
         </span>
       </div>

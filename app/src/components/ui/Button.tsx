@@ -58,7 +58,7 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {icon && <span className="text-current">{icon}</span>}
-      <span>{children}</span>
+      {children && <span>{children}</span>}
     </button>
   );
 };
