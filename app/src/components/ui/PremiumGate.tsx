@@ -7,16 +7,18 @@ interface PremiumGateProps {
   featureName?: string;
   onLockClick?: () => void;
   showBadge?: boolean;
+  isDisabled?: boolean;
 }
 
 export const PremiumGate: React.FC<PremiumGateProps> = ({
   children,
   onLockClick,
-  showBadge = true
+  showBadge = true,
+  isDisabled = false
 }) => {
   const isPremium = useIsPremium();
 
-  if (isPremium) return <>{children}</>;
+  if (isPremium || isDisabled) return <>{children}</>;
 
   return (
     <div className="relative group cursor-pointer" onClick={onLockClick}>
