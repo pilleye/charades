@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { useGameStore, GamePhase, TurnSubPhase } from '@/store/gameStore';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useTimer } from '@/hooks/useTimer';
+import { useWakeLock } from '@/hooks/useWakeLock';
 import { PauseMenuOverlay } from './ui/PauseMenuOverlay';
 import { TEAM_COLORS } from '@/constants';
 
@@ -36,6 +37,8 @@ export const Countdown: React.FC = () => {
 
   const isCountdown = gameState.phase === GamePhase.ACTIVE_TURN && gameState.turn.subPhase === TurnSubPhase.COUNTDOWN;
   const isPaused = gameState.phase === GamePhase.ACTIVE_TURN ? gameState.isPaused : false;
+
+  useWakeLock(!isPaused);
 
   const { playCountdown, playReadyBeep } = useGameAudio();
 

@@ -82,7 +82,7 @@ export const Scoreboard: React.FC = () => {
 
       <header className="relative z-10 flex shrink-0 flex-col p-4 pt-4">
         <div className="flex w-full items-start justify-between">
-          <div className="flex flex-col items-start pt-2">
+          <div className="flex flex-grow flex-col items-start sm:items-center pt-2">
             <h1
               className={`text-3xl font-black tracking-[0.1em] uppercase ${textMainClass} drop-shadow-sm`}
             >

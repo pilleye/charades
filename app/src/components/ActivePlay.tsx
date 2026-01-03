@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useGameStore, GamePhase, TurnSubPhase, WordStatus } from '@/store/gameStore';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useTimer } from '@/hooks/useTimer';
+import { useWakeLock } from '@/hooks/useWakeLock';
 import { getWordFontSize } from '@/lib/typography';
 import { TeamBadge } from './ui/TeamBadge';
 import { PauseIcon, SkipIcon, CheckIcon, CogIcon, BackIcon } from './ui/Icons';
@@ -42,6 +43,8 @@ export const ActivePlay: React.FC = () => {
   // Data extraction - using safe access for hook inputs
   const turnTimeRemaining = isActiveTurn ? gameState.turn.timeRemaining : 0;
   const isPaused = gameState.phase === GamePhase.ACTIVE_TURN ? gameState.isPaused : false;
+
+  useWakeLock(!isPaused);
 
   const { pause, start } = useTimer({
     initialTime: turnTimeRemaining,

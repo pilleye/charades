@@ -10,7 +10,11 @@ export const wakeLockManager = {
       isKeepAwakeActive = true;
       return true;
     } catch (error) {
-      console.error('Failed to enable keep awake:', error);
+      if (error instanceof Error && error.name === 'NotAllowedError') {
+        console.warn('[WakeLock] Failed to enable keep awake: Permission denied. This usually happens if called without a user gesture or if the browser blocks it.', error);
+      } else {
+        console.error('[WakeLock] Failed to enable keep awake:', error);
+      }
       return false;
     }
   },

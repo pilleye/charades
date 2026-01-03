@@ -2,12 +2,15 @@
 
 import React from 'react';
 import { useGameStore, GamePhase } from '@/store/gameStore';
+import { useWakeLock } from '@/hooks/useWakeLock';
 import { Button } from './ui/Button';
 import { TEAM_COLORS } from '@/constants';
 
 export const ReadyCheck: React.FC = () => {
   const { teams, gameState, startTurn, currentRound, totalRounds } =
     useGameStore();
+  
+  useWakeLock(gameState.phase === GamePhase.READY_CHECK);
   
   if (gameState.phase !== GamePhase.READY_CHECK) return null;
   

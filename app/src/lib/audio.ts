@@ -1,10 +1,11 @@
 // Audio + Haptic feedback engine using Web Audio API + Capacitor Haptics
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
+console.log('[SoundEngine] audio.ts module loaded/reloaded');
+
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private hapticsSupported = true;
-  private lastResumeAttempt = 0;
 
   constructor() {
     // Haptics support will be checked when first used
@@ -17,15 +18,15 @@ class SoundEngine {
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext);
       
       if (!AudioContextClass) {
-        console.error('Web Audio API not supported in this environment');
+        console.error('[SoundEngine] CRITICAL: Web Audio API not supported in this environment');
         throw new Error('Web Audio API not supported');
       }
 
       this.ctx = new AudioContextClass();
-      console.warn('[SoundEngine] AudioContext created. State:', this.ctx.state);
+      console.warn(`[SoundEngine] NEW AudioContext created. ID: ${Math.random().toString(36).substr(2, 9)}, State: ${this.ctx.state}`);
 
       this.ctx.onstatechange = () => {
-        console.warn('[SoundEngine] AudioContext state changed to:', this.ctx?.state);
+        console.warn(`[SoundEngine] AudioContext state change detected: -> ${this.ctx?.state}`);
       };
     }
 
@@ -34,19 +35,31 @@ class SoundEngine {
 
   private async ensureContextReady(): Promise<AudioContext> {
     const ctx = this.getContext();
+    const startTime = Date.now();
+
+    console.log(`[SoundEngine] checking context: state=${ctx.state}, time=${ctx.currentTime.toFixed(3)}`);
 
     if (ctx.state === 'suspended') {
-      // Avoid spamming resume calls if they are failing
-      const now = Date.now();
-      if (now - this.lastResumeAttempt > 1000) {
-        this.lastResumeAttempt = now;
+      try {
+        console.warn('[SoundEngine] AudioContext suspended. Attempting auto-resume...');
+        await ctx.resume();
+        console.warn(`[SoundEngine] Auto-resume finished. New state: ${ctx.state} (took ${Date.now() - startTime}ms)`);
+      } catch (err) {
+        console.error('[SoundEngine] Auto-resume failed:', err);
+      }
+    }
+    
+    // Recovery: If state is running but currentTime is not advancing, the context might be "stuck"
+    if (ctx.state === 'running') {
+      const t1 = ctx.currentTime;
+      await new Promise(r => setTimeout(r, 10));
+      if (ctx.currentTime === t1 && t1 > 0) {
+        console.error('[SoundEngine] AudioContext HEURISTIC: State is "running" but currentTime is stuck at ' + t1 + '. Recreating context...');
         try {
-          console.warn('[SoundEngine] Attempting to resume context from ensureContextReady. Current state:', ctx.state);
-          await ctx.resume();
-          console.warn('[SoundEngine] Resume attempt finished. New state:', ctx.state);
-        } catch (err) {
-          console.error('[SoundEngine] Failed to resume audio context:', err);
-        }
+          await ctx.close();
+        } catch (e) { /* ignore */ }
+        this.ctx = null;
+        return this.getContext();
       }
     }
 
@@ -54,9 +67,13 @@ class SoundEngine {
   }
 
   private async playHaptic(type: 'success' | 'recovery' | 'skip' | 'countdown' | 'buzzer' | 'tick', isGo?: boolean) {
-    if (!this.hapticsSupported) return;
+    if (!this.hapticsSupported) {
+      console.log(`[SoundEngine] Haptics skipped (supported=false) for ${type}`);
+      return;
+    }
     
     try {
+      console.log(`[SoundEngine] Triggering haptic: ${type}`);
       switch (type) {
         case 'success':
           await Haptics.notification({ type: NotificationType.Success });
@@ -87,60 +104,57 @@ class SoundEngine {
     // Explicit resume helper for audio context
     try {
       const ctx = this.getContext();
-      console.warn('[SoundEngine] Manual resume requested. Current state:', ctx.state);
+      const oldState = ctx.state;
+      console.log(`[SoundEngine] Manual resume requested. Current state: ${oldState}`);
       
-      if (ctx.state === 'suspended') {
+      if (ctx.state !== 'running') {
         await ctx.resume();
-        console.warn('[SoundEngine] ctx.resume() completed. State now:', ctx.state);
+        console.log(`[SoundEngine] ctx.resume() call finished. State: ${oldState} -> ${ctx.state}`);
       }
 
-      // If still suspended after resume (common on iOS if not a user gesture), 
-      // we can't do much more here, but we can try to prime it if it IS running.
+      // Always try to prime if we are running or just became running
       if (ctx.state === 'running') {
-        // Prime with a silent sound to ensure it's "unlocked"
+        console.log('[SoundEngine] Priming running context with silent oscillator');
+        // Prime with a silent sound to ensure it's "unlocked" and destination is active
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        gain.gain.value = 0.001; 
+        gain.gain.value = 0.0001; 
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start(0);
         osc.stop(0.001);
       }
     } catch (err) {
-      console.error('[SoundEngine] Audio resume failed:', err);
+      console.error('[SoundEngine] Manual resume failed:', err);
     }
   }
 
   public async playSuccess() {
-    
-    // Play haptic feedback (don't await to avoid blocking audio)
+    console.log('[SoundEngine] playSuccess() called');
     this.playHaptic('success');
     
     try {
-      // Play audio
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
+      console.log(`[SoundEngine] Scheduling playSuccess tones at t=${t.toFixed(3)}`);
 
-      // Play a major triad (C major: C5, E5, G5)
       this.playTone(523.25, 'sine', t, 0.3);
       this.playTone(659.25, 'sine', t + 0.05, 0.3);
       this.playTone(783.99, 'sine', t + 0.1, 0.4);
     } catch (err) {
-      console.error('Failed to play success feedback:', err);
+      console.error('[SoundEngine] Failed in playSuccess:', err);
     }
   }
 
   public async playRecovery() {
-    
-    // Play haptic feedback (don't await to avoid blocking audio)
+    console.log('[SoundEngine] playRecovery() called');
     this.playHaptic('recovery');
     
     try {
-      // Play audio
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
+      console.log(`[SoundEngine] Scheduling playRecovery at t=${t.toFixed(3)}`);
 
-      // Recovery "Power Up" sound
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
@@ -157,21 +171,20 @@ class SoundEngine {
       osc.start(t);
       osc.stop(t + 0.4);
 
-      // "Ding" accent at the end
       this.playTone(1567.98, 'triangle', t + 0.1, 0.4, 0.1);
     } catch (err) {
-      console.error('Failed to play recovery feedback:', err);
+      console.error('[SoundEngine] Failed in playRecovery:', err);
     }
   }
 
   public async playSkip() {
+    console.log('[SoundEngine] playSkip() called');
     try {
-      // Play haptic feedback
-      await this.playHaptic('skip');
+      this.playHaptic('skip');
       
-      // Play audio
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
+      console.log(`[SoundEngine] Scheduling playSkip at t=${t.toFixed(3)}`);
 
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -188,53 +201,48 @@ class SoundEngine {
       osc.start(t);
       osc.stop(t + 0.2);
     } catch (err) {
-      console.error('Failed to play skip feedback:', err);
+      console.error('[SoundEngine] Failed in playSkip:', err);
     }
   }
 
   public async playCountdown(isGo: boolean = false) {
+    console.log(`[SoundEngine] playCountdown(isGo=${isGo}) called`);
     try {
-      // Play haptic feedback
-      await this.playHaptic('countdown', isGo);
+      this.playHaptic('countdown', isGo);
       
-      // Play audio
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
+      console.log(`[SoundEngine] Scheduling countdown at t=${t.toFixed(3)}`);
 
       if (isGo) {
-        // GO! Sound: Mario Kart Style high peak
-        // A combination of frequencies to make it "thick"
         this.playTone(1046.5, 'square', t, 0.6, 0.4); // C6
         this.playTone(1318.51, 'square', t, 0.6, 0.4); // E6
         this.playTone(1567.98, 'square', t, 0.6, 0.4); // G6
       } else {
-        // 3-2-1 Sound: Sharp, neutral mid-beep
         this.playTone(523.25, 'square', t, 0.1, 0.4); // C5
       }
     } catch (err) {
-      console.error('Failed to play countdown feedback:', err);
+      console.error('[SoundEngine] Failed in playCountdown:', err);
     }
   }
 
   public async playBuzzer() {
+    console.log('[SoundEngine] playBuzzer() called');
     try {
-      // Play haptic feedback
-      await this.playHaptic('buzzer');
+      this.playHaptic('buzzer');
       
-      // Play audio
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
+      console.log(`[SoundEngine] Scheduling buzzer at t=${t.toFixed(3)}`);
+
       const pulseCount = 4;
       const pulseDuration = 0.12;
       const gap = 0.04;
 
       const masterGain = ctx.createGain();
-      masterGain.gain.setValueAtTime(0.4, t); // Louder
+      masterGain.gain.setValueAtTime(0.4, t);
       masterGain.connect(ctx.destination);
 
-      // Bright Arcade Buzzer: Fast pulses of filtered square waves
-      // Using a major-ish interval (250Hz and 375Hz - Perfect Fifth)
-      // High-energy but "clean" (not gritty)
       for (let i = 0; i < pulseCount; i++) {
         const startTime = t + i * (pulseDuration + gap);
         
@@ -246,7 +254,6 @@ class SoundEngine {
           osc.type = 'square';
           osc.frequency.setValueAtTime(freq, startTime);
           
-          // Filter out the "grittiness" while keeping the "thickness"
           filter.type = 'lowpass';
           filter.frequency.value = 2500;
           
@@ -264,7 +271,7 @@ class SoundEngine {
         });
       }
     } catch (err) {
-      console.error('Failed to play buzzer feedback:', err);
+      console.error('[SoundEngine] Failed in playBuzzer:', err);
     }
   }
 
@@ -278,7 +285,7 @@ class SoundEngine {
       const t = ctx.currentTime;
       
       const freq = 800; 
-      const volume = 0.4; // Significantly louder
+      const volume = 0.4;
       const duration = 0.1; 
 
       const osc = ctx.createOscillator();
@@ -292,16 +299,12 @@ class SoundEngine {
       osc.start(t);
       osc.stop(t + duration);
     } catch (err) {
-      console.error('Failed to play urgent tick:', err);
+      console.error('[SoundEngine] Failed in playUrgentTick:', err);
     }
   }
 
   public async playTick(freq: number = 800, volume: number = 0.01) {
     try {
-      // Play haptic feedback (silent for tick to avoid spam)
-      await this.playHaptic('tick');
-      
-      // Play audio
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
 
@@ -317,7 +320,7 @@ class SoundEngine {
       osc.start(t);
       osc.stop(t + 0.1);
     } catch (err) {
-      console.error('Failed to play tick feedback:', err);
+      console.error('[SoundEngine] Failed in playTick:', err);
     }
   }
 
@@ -328,21 +331,26 @@ class SoundEngine {
     duration: number,
     volume: number = 0.2
   ) {
-    const ctx = this.getContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    try {
+      const ctx = this.getContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
 
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, startTime);
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, startTime);
 
-    gain.gain.setValueAtTime(volume, startTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      gain.gain.setValueAtTime(volume, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
 
-    osc.start(startTime);
-    osc.stop(startTime + duration);
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+      console.log(`[SoundEngine] playTone SUCCESS: ${freq}Hz, ${type}, duration=${duration}s`);
+    } catch (e) {
+      console.error(`[SoundEngine] playTone FAILED: ${freq}Hz`, e);
+    }
   }
 }
 
