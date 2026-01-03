@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from './Button';
+import { soundEngine } from '@/lib/audio';
 
 interface PauseMenuOverlayProps {
     /** Whether the overlay is visible */
@@ -44,6 +45,8 @@ export const PauseMenuOverlay: React.FC<PauseMenuOverlayProps> = ({
     const textSubClass = isDark ? 'text-indigo-200' : 'text-slate-500';
 
     const handleResume = () => {
+        // Init audio during user gesture (click) to unlock on Safari
+        soundEngine.init();
         setShowQuitConfirm(false);
         onResume();
     };

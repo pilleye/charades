@@ -7,7 +7,9 @@
       "WebSearch",
       "Bash(bun run build:*)",
       "Bash(bun add:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(wc:*)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []

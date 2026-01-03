@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useGameStore, GamePhase, TurnSubPhase } from '@/store/gameStore';
 import { soundEngine } from '@/lib/audio';
 import { GameContainer } from './GameContainer';
@@ -14,26 +14,65 @@ import { SecondChanceRound } from './SecondChanceRound';
 
 export const CharadesApp: React.FC = () => {
   const gameState = useGameStore((state) => state.gameState);
+  const prevPhaseRef = useRef<GamePhase>(gameState.phase);
+  const prevPausedRef = useRef<boolean>(false);
 
+  // Get isPaused only when in ACTIVE_TURN phase
+  const isPaused = gameState.phase === GamePhase.ACTIVE_TURN ? gameState.isPaused : false;
+
+  // Manage audio context lifecycle based on game state
   useEffect(() => {
-    const handleResume = async () => {
-      try {
-        await soundEngine.resume();
-      } catch (err) {
-        console.error('Failed to resume audio:', err);
-      }
-    };
+    const isGameActive = gameState.phase !== GamePhase.SETUP && gameState.phase !== GamePhase.GAME_OVER;
+    const wasGameActive = prevPhaseRef.current !== GamePhase.SETUP && prevPhaseRef.current !== GamePhase.GAME_OVER;
 
+    // Game just started (transitioned from SETUP to active phase)
+    if (isGameActive && !wasGameActive) {
+      console.log('[CharadesApp] Game started - initializing audio');
+      soundEngine.init();
+    }
+
+    // Game just ended (transitioned to SETUP or GAME_OVER)
+    if (!isGameActive && wasGameActive) {
+      console.log('[CharadesApp] Game ended - destroying audio');
+      soundEngine.destroy();
+    }
+
+    // Handle pause/unpause during active turn
+    if (gameState.phase === GamePhase.ACTIVE_TURN) {
+      if (isPaused && !prevPausedRef.current) {
+        console.log('[CharadesApp] Game paused - destroying audio');
+        soundEngine.destroy();
+      } else if (!isPaused && prevPausedRef.current) {
+        console.log('[CharadesApp] Game resumed - initializing audio');
+        soundEngine.init();
+      }
+    }
+
+    prevPhaseRef.current = gameState.phase;
+    prevPausedRef.current = isPaused;
+  }, [gameState.phase, isPaused]);
+
+  // Handle visibility and focus events
+  useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        setTimeout(handleResume, 100);
+        // Only resume if game is active and not paused
+        const { gameState: currentGameState } = useGameStore.getState();
+        const isActive = currentGameState.phase !== GamePhase.SETUP &&
+                        currentGameState.phase !== GamePhase.GAME_OVER;
+        const currentIsPaused = currentGameState.phase === GamePhase.ACTIVE_TURN
+          ? currentGameState.isPaused : false;
+        if (isActive && !currentIsPaused) {
+          soundEngine.resume();
+        }
       } else {
+        // Pause game when tab becomes hidden
         const { gameState: currentGameState } = useGameStore.getState();
         if (
           currentGameState.phase === GamePhase.ACTIVE_TURN &&
           !currentGameState.isPaused
         ) {
-          useGameStore.setState({ 
+          useGameStore.setState({
             gameState: { ...currentGameState, isPaused: true }
           });
         }
@@ -46,42 +85,18 @@ export const CharadesApp: React.FC = () => {
         currentGameState.phase === GamePhase.ACTIVE_TURN &&
         !currentGameState.isPaused
       ) {
-        useGameStore.setState({ 
+        useGameStore.setState({
           gameState: { ...currentGameState, isPaused: true }
         });
       }
     };
 
-    const handleFocus = () => {
-      handleResume();
-    };
-
-    const handlePageShow = () => {
-      // Handle browser back/forward cache restoration
-      handleResume();
-    };
-
-    // Comprehensive event listeners for mobile and desktop
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    document.addEventListener('touchstart', handleResume, { passive: true, capture: true });
-    document.addEventListener('touchend', handleResume, { passive: true, capture: true });
-    document.addEventListener('mousedown', handleResume, { capture: true });
-    document.addEventListener('click', handleResume, { capture: true });
-    document.addEventListener('keydown', handleResume, { capture: true });
-    window.addEventListener('focus', handleFocus);
     window.addEventListener('blur', handleBlur);
-    window.addEventListener('pageshow', handlePageShow);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      document.removeEventListener('touchstart', handleResume, { capture: true });
-      document.removeEventListener('touchend', handleResume, { capture: true });
-      document.removeEventListener('mousedown', handleResume, { capture: true });
-      document.removeEventListener('click', handleResume, { capture: true });
-      document.removeEventListener('keydown', handleResume, { capture: true });
-      window.removeEventListener('focus', handleFocus);
       window.removeEventListener('blur', handleBlur);
-      window.removeEventListener('pageshow', handlePageShow);
     };
   }, []);
 

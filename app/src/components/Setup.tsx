@@ -7,6 +7,7 @@ import { Paywall } from './Paywall';
 import { TeamEditor } from './setup/TeamEditor';
 import { GameRulesEditor } from './setup/GameRulesEditor';
 import { DeckSelector } from './setup/DeckSelector';
+import { soundEngine } from '@/lib/audio';
 
 export type PaywallTrigger = 'full_deck' | 'locked_deck' | 'custom_words';
 
@@ -30,6 +31,8 @@ export const Setup: React.FC = () => {
   const [paywallTrigger, setPaywallTrigger] = useState<PaywallTrigger>('full_deck');
 
   const handleStart = () => {
+    // Init audio during user gesture (click) to unlock on Safari
+    soundEngine.init();
     store.setTeams(localTeams);
     store.setSettings({
       roundDuration: localRules.duration,
