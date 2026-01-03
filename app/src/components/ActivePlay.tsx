@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { soundEngine } from '@/lib/audio';
 import { wakeLockManager } from '@/lib/wakeLock';
+import { getWordFontSize } from '@/lib/typography';
 import { Button } from './ui/Button';
 import { SkipIcon, CheckIcon, PauseIcon, CogIcon, BackIcon } from './ui/Icons';
 import { HintDisplay } from './ui/HintDisplay';
@@ -138,18 +139,6 @@ export const ActivePlay: React.FC = () => {
     (turnTimeRemaining / roundDuration) * 100
   );
 
-  // Dynamic Font Size
-
-  const getFontSize = (word: string) => {
-    if (word.length <= 6) return 'text-7xl';
-
-    if (word.length <= 10) return 'text-6xl';
-
-    if (word.length <= 14) return 'text-5xl';
-
-    return 'text-4xl';
-  };
-
   // Timer State Logic
 
   const isCritical = turnTimeRemaining <= 5;
@@ -165,13 +154,12 @@ export const ActivePlay: React.FC = () => {
 
       <div className="relative z-30 h-6 w-full shrink-0 border-b border-slate-300 bg-slate-200">
         <div
-          className={`h-full transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${
-            isCritical
+          className={`h-full transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${isCritical
               ? 'bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.6)]'
               : isWarning
                 ? 'bg-orange-500'
                 : 'bg-blue-500'
-          }`}
+            }`}
           style={{ width: `${progressPercent}%` }}
         />
       </div>
@@ -206,7 +194,7 @@ export const ActivePlay: React.FC = () => {
             {/* Center: Time (Large & Reactive) */}
 
             <div className="flex flex-col items-center justify-start">
-              <TeamBadge 
+              <TeamBadge
                 name={currentTeam.name}
                 colorIndex={currentTeam.colorIndex}
                 variant="compact"
@@ -214,22 +202,20 @@ export const ActivePlay: React.FC = () => {
               />
 
               <div
-                className={`flex flex-col items-center transition-all duration-300 ${
-                  isCritical
+                className={`flex flex-col items-center transition-all duration-300 ${isCritical
                     ? 'translate-y-2 scale-125'
                     : isWarning
                       ? 'translate-y-1 scale-110'
                       : ''
-                }`}
+                  }`}
               >
                 <span
-                  className={`font-mono leading-none font-black transition-colors duration-300 ${
-                    isCritical
+                  className={`font-mono leading-none font-black transition-colors duration-300 ${isCritical
                       ? 'animate-pulse text-8xl text-red-600 drop-shadow-sm'
                       : isWarning
                         ? 'text-7xl text-orange-500'
                         : 'text-6xl text-slate-900'
-                  }`}
+                    }`}
                 >
                   {turnTimeRemaining}
                 </span>
@@ -252,7 +238,7 @@ export const ActivePlay: React.FC = () => {
 
           <div className="relative z-10 -mt-8 flex flex-1 flex-col items-center justify-center px-6">
             <h1
-              className={`animate-pop-in relative text-center leading-tight font-black break-words text-slate-900 drop-shadow-sm select-none ${getFontSize(displayWord)}`}
+              className={`animate-pop-in relative text-center leading-tight font-black break-words text-slate-900 drop-shadow-sm select-none ${getWordFontSize(displayWord)}`}
             >
               {displayWord}
             </h1>
@@ -292,167 +278,167 @@ export const ActivePlay: React.FC = () => {
       </div>
 
       <Overlay isOpen={isPaused} className="p-0">
-          {view === 'PAUSED' && !showQuitConfirm && (
-            <div className="flex w-full flex-col items-center justify-center space-y-8 px-10 py-6">
-              <h2 className="text-center text-4xl font-black text-slate-900">
-                GAME PAUSED
-              </h2>
+        {view === 'PAUSED' && !showQuitConfirm && (
+          <div className="flex w-full flex-col items-center justify-center space-y-8 px-10 py-6">
+            <h2 className="text-center text-4xl font-black text-slate-900">
+              GAME PAUSED
+            </h2>
 
-              <div className="space-y-4">
-                <Button
-                  variant="primary"
-                  size="xl"
-                  fullWidth
-                  onClick={handleResume}
-                >
-                  RESUME
-                </Button>
+            <div className="space-y-4">
+              <Button
+                variant="primary"
+                size="xl"
+                fullWidth
+                onClick={handleResume}
+              >
+                RESUME
+              </Button>
 
+              <Button
+                variant="secondary"
+                size="lg"
+                fullWidth
+                onClick={() => setView('SETTINGS')}
+                className="gap-2"
+                icon={<CogIcon />}
+              >
+                GAME SETTINGS
+              </Button>
+
+              <div className="pt-4">
                 <Button
-                  variant="secondary"
+                  variant="ghost"
                   size="lg"
                   fullWidth
-                  onClick={() => setView('SETTINGS')}
-                  className="gap-2"
-                  icon={<CogIcon />}
+                  onClick={() => setShowQuitConfirm(true)}
+                  className="bg-red-50 text-red-500 hover:bg-red-100"
                 >
-                  GAME SETTINGS
+                  QUIT GAME
                 </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
-                <div className="pt-4">
-                  <Button
-                    variant="ghost"
-                    size="lg"
-                    fullWidth
-                    onClick={() => setShowQuitConfirm(true)}
-                    className="bg-red-50 text-red-500 hover:bg-red-100"
-                  >
-                    QUIT GAME
-                  </Button>
+        {view === 'SETTINGS' && (
+          <div className="flex h-full w-full flex-col bg-slate-50">
+            {/* Settings Header */}
+            <header className="flex shrink-0 items-center justify-between p-4">
+              <button
+                onClick={() => setView('PAUSED')}
+                className="-ml-2 p-2 text-slate-400 transition-transform hover:text-slate-600 active:scale-95"
+              >
+                <BackIcon />
+              </button>
+              <h2 className="text-2xl font-black tracking-wide text-slate-800 uppercase">
+                SETTINGS
+              </h2>
+              <div className="w-8"></div>
+            </header>
+
+            {/* Settings Content */}
+            <div className="mask-fade-bottom flex-1 space-y-6 overflow-y-auto px-6 pb-4">
+              <section className="space-y-6 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+                <NumberControl
+                  label="Round Timer"
+                  value={roundDuration}
+                  onDecrease={() => updateDurationInGame(Math.max(10, roundDuration - 10))}
+                  onIncrease={() => updateDurationInGame(roundDuration + 10)}
+                  unit="SECONDS"
+                />
+
+                <InfiniteToggleControl
+                  label="Skips Allowed"
+                  value={skipsPerTurn}
+                  onDecrease={() =>
+                    typeof skipsPerTurn === 'number' &&
+                    updateSkipsPerTurn(Math.max(0, skipsPerTurn - 1))
+                  }
+                  onIncrease={() =>
+                    typeof skipsPerTurn === 'number' &&
+                    updateSkipsPerTurn(Math.min(10, skipsPerTurn + 1))
+                  }
+                  onToggleInfinite={toggleInfiniteSkips}
+                  unit="PER TURN"
+                  color="yellow"
+                  lastFiniteValue={lastSkipsValue}
+                />
+
+                <InfiniteToggleControl
+                  label="Total Rounds"
+                  value={totalRounds}
+                  onDecrease={() =>
+                    typeof totalRounds === 'number' &&
+                    updateTotalRounds(Math.max(currentRound, totalRounds - 1))
+                  }
+                  onIncrease={() =>
+                    typeof totalRounds === 'number' &&
+                    updateTotalRounds(totalRounds + 1)
+                  }
+                  onToggleInfinite={toggleInfiniteRounds}
+                  unit="ROUNDS"
+                  color="indigo"
+                  lastFiniteValue={lastRoundsValue}
+                />
+
+                <div className="flex flex-col gap-2 border-t border-slate-100 pt-2">
+                  <label className="text-sm font-bold text-slate-400 uppercase">
+                    Show Hints
+                  </label>
+                  <SegmentedControl
+                    options={[
+                      { label: 'Disabled', value: false },
+                      { label: 'Enabled', value: true },
+                    ]}
+                    value={hintsEnabled}
+                    onChange={setHintsEnabled}
+                  />
                 </div>
-              </div>
+              </section>
             </div>
-          )}
 
-          {view === 'SETTINGS' && (
-            <div className="flex h-full w-full flex-col bg-slate-50">
-              {/* Settings Header */}
-              <header className="flex shrink-0 items-center justify-between p-4">
-                <button
-                  onClick={() => setView('PAUSED')}
-                  className="-ml-2 p-2 text-slate-400 transition-transform hover:text-slate-600 active:scale-95"
-                >
-                  <BackIcon />
-                </button>
-                <h2 className="text-2xl font-black tracking-wide text-slate-800 uppercase">
-                  SETTINGS
-                </h2>
-                <div className="w-8"></div>
-              </header>
-
-              {/* Settings Content */}
-              <div className="mask-fade-bottom flex-1 space-y-6 overflow-y-auto px-6 pb-4">
-                <section className="space-y-6 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
-                  <NumberControl
-                    label="Round Timer"
-                    value={roundDuration}
-                    onDecrease={() => updateDurationInGame(Math.max(10, roundDuration - 10))}
-                    onIncrease={() => updateDurationInGame(roundDuration + 10)}
-                    unit="SECONDS"
-                  />
-
-                  <InfiniteToggleControl
-                    label="Skips Allowed"
-                    value={skipsPerTurn}
-                    onDecrease={() => 
-                      typeof skipsPerTurn === 'number' &&
-                      updateSkipsPerTurn(Math.max(0, skipsPerTurn - 1))
-                    }
-                    onIncrease={() =>
-                      typeof skipsPerTurn === 'number' &&
-                      updateSkipsPerTurn(Math.min(10, skipsPerTurn + 1))
-                    }
-                    onToggleInfinite={toggleInfiniteSkips}
-                    unit="PER TURN"
-                    color="yellow"
-                    lastFiniteValue={lastSkipsValue}
-                  />
-
-                  <InfiniteToggleControl
-                    label="Total Rounds"
-                    value={totalRounds}
-                    onDecrease={() =>
-                      typeof totalRounds === 'number' &&
-                      updateTotalRounds(Math.max(currentRound, totalRounds - 1))
-                    }
-                    onIncrease={() =>
-                      typeof totalRounds === 'number' &&
-                      updateTotalRounds(totalRounds + 1)
-                    }
-                    onToggleInfinite={toggleInfiniteRounds}
-                    unit="ROUNDS"
-                    color="indigo"
-                    lastFiniteValue={lastRoundsValue}
-                  />
-
-                  <div className="flex flex-col gap-2 border-t border-slate-100 pt-2">
-                    <label className="text-sm font-bold text-slate-400 uppercase">
-                      Show Hints
-                    </label>
-                    <SegmentedControl
-                      options={[
-                        { label: 'Disabled', value: false },
-                        { label: 'Enabled', value: true },
-                      ]}
-                      value={hintsEnabled}
-                      onChange={setHintsEnabled}
-                    />
-                  </div>
-                </section>
-              </div>
-
-              <div className="shrink-0 p-6 pt-2 pb-8">
-                <Button
-                  variant="primary"
-                  size="xl"
-                  fullWidth
-                  onClick={() => setView('PAUSED')}
-                >
-                  DONE
-                </Button>
-              </div>
+            <div className="shrink-0 p-6 pt-2 pb-8">
+              <Button
+                variant="primary"
+                size="xl"
+                fullWidth
+                onClick={() => setView('PAUSED')}
+              >
+                DONE
+              </Button>
             </div>
-          )}
+          </div>
+        )}
 
-          {showQuitConfirm && (
-            <div className="flex w-full flex-col items-center justify-center space-y-6 px-10 py-6">
-              <h2 className="text-center text-3xl font-black text-slate-900">
-                EXIT TO MENU?
-              </h2>
-              <p className="-mt-4 text-center font-bold text-slate-500">
-                Current game progress will be lost.
-              </p>
+        {showQuitConfirm && (
+          <div className="flex w-full flex-col items-center justify-center space-y-6 px-10 py-6">
+            <h2 className="text-center text-3xl font-black text-slate-900">
+              EXIT TO MENU?
+            </h2>
+            <p className="-mt-4 text-center font-bold text-slate-500">
+              Current game progress will be lost.
+            </p>
 
-              <div className="w-full max-w-sm space-y-4">
-                <Button
-                  variant="danger"
-                  size="xl"
-                  fullWidth
-                  onClick={resetGame}
-                >
-                  YES, EXIT GAME
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  fullWidth
-                  onClick={() => setShowQuitConfirm(false)}
-                >
-                  CANCEL
-                </Button>
-              </div>
+            <div className="w-full max-w-sm space-y-4">
+              <Button
+                variant="danger"
+                size="xl"
+                fullWidth
+                onClick={resetGame}
+              >
+                YES, EXIT GAME
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                fullWidth
+                onClick={() => setShowQuitConfirm(false)}
+              >
+                CANCEL
+              </Button>
             </div>
-          )}
+          </div>
+        )}
       </Overlay>
     </div>
   );

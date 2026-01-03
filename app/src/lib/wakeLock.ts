@@ -8,7 +8,6 @@ export const wakeLockManager = {
     try {
       await KeepAwake.keepAwake();
       isKeepAwakeActive = true;
-      console.log('Keep awake active');
       return true;
     } catch (error) {
       console.error('Failed to enable keep awake:', error);
@@ -20,7 +19,6 @@ export const wakeLockManager = {
     try {
       await KeepAwake.allowSleep();
       isKeepAwakeActive = false;
-      console.log('Keep awake disabled');
     } catch (error) {
       console.error('Failed to disable keep awake:', error);
     }

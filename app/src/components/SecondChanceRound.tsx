@@ -6,42 +6,8 @@ import { soundEngine } from '@/lib/audio';
 import { wakeLockManager } from '@/lib/wakeLock';
 import { Button } from './ui/Button';
 import { TEAM_COLORS } from '@/constants';
-import { SkipIcon } from './ui/Icons';
-
-// Icons
-const RecoverIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={3}
-    stroke="currentColor"
-    className="h-10 w-10"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
-    />
-  </svg>
-);
-
-const PauseIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={2}
-    stroke="currentColor"
-    className="h-6 w-6"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15.75 5.25v13.5m-7.5-13.5v13.5"
-    />
-  </svg>
-);
+import { SkipIcon, RecoverIcon, PauseIcon } from './ui/Icons';
+import { getWordFontSize } from '@/lib/typography';
 
 export const SecondChanceRound: React.FC = () => {
   const {
@@ -91,14 +57,6 @@ export const SecondChanceRound: React.FC = () => {
   const togglePause = () => {
     setIsPaused(!isPaused);
     if (isPaused) setShowQuitConfirm(false); // Reset on close
-  };
-
-  // Dynamic Font Size
-  const getFontSize = (word: string) => {
-    if (word.length <= 6) return 'text-7xl';
-    if (word.length <= 10) return 'text-6xl';
-    if (word.length <= 14) return 'text-5xl';
-    return 'text-4xl';
   };
 
   return (
@@ -152,7 +110,7 @@ export const SecondChanceRound: React.FC = () => {
           <div className="flex flex-1 items-center justify-center px-6">
             <div className="animate-pop-in pb-10 text-center">
               <h1
-                className={`leading-tight font-black break-words drop-shadow-2xl ${getFontSize(currentWord)}`}
+                className={`leading-tight font-black break-words drop-shadow-2xl ${getWordFontSize(currentWord)}`}
               >
                 {currentWord}
               </h1>
@@ -178,7 +136,7 @@ export const SecondChanceRound: React.FC = () => {
             onClick={handleRecover}
             className={`flex flex-[1.5] touch-manipulation flex-col items-center justify-center gap-2 rounded-3xl border-b-[8px] border-indigo-700 bg-indigo-500 text-white shadow-lg shadow-indigo-900/50 transition-all active:translate-y-[8px] active:border-b-0 active:bg-indigo-600`}
           >
-            <RecoverIcon />
+            <RecoverIcon className="h-10 w-10" />
             <span className="text-2xl font-black tracking-wider uppercase">
               Recover
             </span>

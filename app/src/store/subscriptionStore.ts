@@ -53,14 +53,12 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       initialize: async () => {
         // Only run on native iOS
         if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'ios') {
-          console.log('[IAP] Not on iOS, skipping initialization');
           set({ isInitialized: true, status: 'not_subscribed' });
           return;
         }
 
         // Prevent double initialization
         if (get().isInitialized) {
-          console.log('[IAP] Already initialized');
           return;
         }
 
@@ -73,8 +71,6 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             productType: PURCHASE_TYPE.SUBS,
           });
 
-          console.log('[IAP] Products loaded:', products);
-
           if (products.length > 0) {
             const product = products[0];
             set({
@@ -85,7 +81,6 @@ export const useSubscriptionStore = create<SubscriptionState>()(
 
           // Check current purchases (active subscriptions)
           const { purchases } = await NativePurchases.getPurchases();
-          console.log('[IAP] Current purchases:', purchases);
 
           const hasActiveSubscription = purchases.some(
             (t) => t.productIdentifier === PRODUCT_ID && isSubscriptionActive(t)
@@ -95,8 +90,6 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             isInitialized: true,
             status: hasActiveSubscription ? 'active' : 'not_subscribed',
           });
-
-          console.log('[IAP] Initialized, premium:', hasActiveSubscription);
         } catch (error) {
           console.error('[IAP] Initialization error:', error);
           set({
@@ -120,8 +113,6 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             productIdentifier: PRODUCT_ID,
             productType: PURCHASE_TYPE.SUBS,
           });
-
-          console.log('[IAP] Purchase result:', transaction);
 
           if (transaction && transaction.transactionId) {
             set({ status: 'active', error: null });
@@ -158,7 +149,6 @@ export const useSubscriptionStore = create<SubscriptionState>()(
 
           // Check purchases after restore
           const { purchases } = await NativePurchases.getPurchases();
-          console.log('[IAP] Restored purchases:', purchases);
 
           const hasActiveSubscription = purchases.some(
             (t) => t.productIdentifier === PRODUCT_ID && isSubscriptionActive(t)

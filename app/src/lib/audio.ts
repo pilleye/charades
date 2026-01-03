@@ -12,7 +12,6 @@ class SoundEngine {
   private getContext(): AudioContext {
     // If context is missing or closed, create a new one
     if (!this.ctx || this.ctx.state === 'closed') {
-      console.log('Creating new AudioContext');
       this.ctx = new (
         window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
       )();
@@ -23,13 +22,10 @@ class SoundEngine {
 
   private async ensureContextReady(): Promise<AudioContext> {
     const ctx = this.getContext();
-    console.log(`AudioContext state before ready check: ${ctx.state}`);
 
     if (ctx.state === 'suspended') {
       try {
-        console.log('AudioContext suspended, attempting to resume...');
         await ctx.resume();
-        console.log('AudioContext resumed successfully');
       } catch (err) {
         console.error('Failed to resume audio context:', err);
         throw err;
@@ -43,7 +39,6 @@ class SoundEngine {
     if (!this.hapticsSupported) return;
     
     try {
-      console.log(`Attempting ${type} haptic feedback`);
       switch (type) {
         case 'success':
           await Haptics.notification({ type: NotificationType.Success });
@@ -64,7 +59,6 @@ class SoundEngine {
           await Haptics.impact({ style: ImpactStyle.Light });
           break;
       }
-      console.log(`${type} haptic completed`);
     } catch (err) {
       console.warn(`Haptics failed for ${type}, disabling:`, err);
       this.hapticsSupported = false;
@@ -75,10 +69,8 @@ class SoundEngine {
     // Explicit resume helper for audio context
     const ctx = this.getContext();
     if (ctx.state === 'suspended') {
-      console.log(`Explicit resume called. Current state: ${ctx.state}`);
       try {
         await ctx.resume();
-        console.log('Explicit resume successful');
       } catch (err) {
         console.error('Audio resume failed:', err);
       }
@@ -86,7 +78,6 @@ class SoundEngine {
   }
 
   public async playSuccess() {
-    console.log('Playing SUCCESS sound + haptic');
     
     // Play haptic feedback (don't await to avoid blocking audio)
     this.playHaptic('success');
@@ -100,14 +91,12 @@ class SoundEngine {
       this.playTone(523.25, 'sine', t, 0.3);
       this.playTone(659.25, 'sine', t + 0.05, 0.3);
       this.playTone(783.99, 'sine', t + 0.1, 0.4);
-      console.log('SUCCESS sound dispatched');
     } catch (err) {
       console.error('Failed to play success feedback:', err);
     }
   }
 
   public async playRecovery() {
-    console.log('Playing RECOVERY sound + haptic');
     
     // Play haptic feedback (don't await to avoid blocking audio)
     this.playHaptic('recovery');
@@ -136,14 +125,12 @@ class SoundEngine {
 
       // "Ding" accent at the end
       this.playTone(1567.98, 'triangle', t + 0.1, 0.4, 0.1);
-      console.log('RECOVERY sound dispatched');
     } catch (err) {
       console.error('Failed to play recovery feedback:', err);
     }
   }
 
   public async playSkip() {
-    console.log('Playing SKIP sound + haptic');
     try {
       // Play haptic feedback
       await this.playHaptic('skip');
@@ -172,7 +159,6 @@ class SoundEngine {
   }
 
   public async playCountdown(isGo: boolean = false) {
-    console.log(`Playing COUNTDOWN sound + haptic (isGo: ${isGo})`);
     try {
       // Play haptic feedback
       await this.playHaptic('countdown', isGo);
@@ -195,7 +181,6 @@ class SoundEngine {
   }
 
   public async playBuzzer() {
-    console.log('Playing BUZZER sound + haptic');
     try {
       // Play haptic feedback
       await this.playHaptic('buzzer');
