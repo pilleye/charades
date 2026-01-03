@@ -3,6 +3,31 @@ import type { DeckItem } from '@/data/decks/types';
 
 export type GameLimit = number | 'unlimited';
 
+export const GamePhase = {
+  SETUP: 'SETUP',
+  READY_CHECK: 'READY_CHECK',
+  ACTIVE_TURN: 'ACTIVE_TURN',
+  REVIEW: 'REVIEW',
+  SCOREBOARD: 'SCOREBOARD',
+  GAME_OVER: 'GAME_OVER',
+} as const;
+export type GamePhase = (typeof GamePhase)[keyof typeof GamePhase];
+
+export const TurnSubPhase = {
+  COUNTDOWN: 'COUNTDOWN',
+  PLAYING: 'PLAYING',
+  SECOND_CHANCE: 'SECOND_CHANCE',
+} as const;
+export type TurnSubPhase = (typeof TurnSubPhase)[keyof typeof TurnSubPhase];
+
+export const WordStatus = {
+  GOT_IT: 'GOT_IT',
+  SKIPPED: 'SKIPPED',
+  SECOND_CHANCE: 'SECOND_CHANCE',
+  RECOVERED: 'RECOVERED',
+} as const;
+export type WordStatus = (typeof WordStatus)[keyof typeof WordStatus];
+
 export interface Team {
   id: number;
   name: string;
@@ -12,7 +37,7 @@ export interface Team {
 
 export interface WordResult {
   word: string;
-  status: 'GOT_IT' | 'SKIPPED' | 'SECOND_CHANCE' | 'UNPLAYED';
+  status: WordStatus;
   originalItem?: DeckItem;
 }
 
@@ -26,13 +51,17 @@ export interface TurnData {
 }
 
 export type GameState =
-  | { phase: 'SETUP'; isGameOver: boolean }
-  | { phase: 'READY_CHECK' }
-  | { phase: 'COUNTDOWN'; turn: TurnData; isPaused: boolean }
-  | { phase: 'ACTIVE'; turn: TurnData; isPaused: boolean }
-  | { phase: 'SECOND_CHANCE'; turn: TurnData; isPaused: boolean }
-  | { phase: 'REVIEW'; turn: TurnData }
-  | { phase: 'SCOREBOARD' };
+  | { phase: typeof GamePhase.SETUP }
+  | { phase: typeof GamePhase.READY_CHECK }
+  | { 
+      phase: typeof GamePhase.ACTIVE_TURN; 
+      subPhase: TurnSubPhase; 
+      turn: TurnData; 
+      isPaused: boolean 
+    }
+  | { phase: typeof GamePhase.REVIEW; turn: TurnData }
+  | { phase: typeof GamePhase.SCOREBOARD }
+  | { phase: typeof GamePhase.GAME_OVER };
 
 export interface SettingsSlice {
   roundDuration: number;
@@ -81,8 +110,9 @@ export interface TurnSlice {
   startTurn: () => void;
   beginActiveRound: () => void;
   endTurn: () => void;
-  markWord: (status: 'GOT_IT' | 'SKIPPED') => void;
-  updateReviewWord: (index: number, status: 'GOT_IT' | 'SKIPPED' | 'SECOND_CHANCE') => void;
+  updateTimer: (time: number) => void;
+  markWord: (status: typeof WordStatus.GOT_IT | typeof WordStatus.SKIPPED) => void;
+  updateReviewWord: (index: number, status: WordStatus) => void;
   applyReviewScores: () => void;
   resolveSecondChance: (success: boolean) => void;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useGameStore } from '@/store/gameStore';
+import { useGameStore, GamePhase, TurnSubPhase } from '@/store/gameStore';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useTimer } from '@/hooks/useTimer';
 import { PauseMenuOverlay } from './ui/PauseMenuOverlay';
@@ -35,7 +35,8 @@ export const Countdown: React.FC = () => {
     currentTeamIndex,
   } = useGameStore();
 
-  const isPaused = gameState.phase === 'COUNTDOWN' ? gameState.isPaused : false;
+  const isCountdown = gameState.phase === GamePhase.ACTIVE_TURN && gameState.subPhase === TurnSubPhase.COUNTDOWN;
+  const isPaused = gameState.phase === GamePhase.ACTIVE_TURN ? gameState.isPaused : false;
 
   const currentTeam = teams[currentTeamIndex];
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
@@ -58,6 +59,8 @@ export const Countdown: React.FC = () => {
     if (isPaused) pause();
     else start();
   }, [isPaused, pause, start]);
+
+  if (!isCountdown) return null;
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-50">

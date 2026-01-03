@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useGameStore, type WordResult } from '@/store/gameStore';
+import { useGameStore, GamePhase, WordStatus } from '@/store/gameStore';
 import { Button } from './ui/Button';
 import { RecoverIcon } from './ui/Icons';
 import { TeamBadge } from './ui/TeamBadge';
@@ -23,38 +23,39 @@ export const Review: React.FC = () => {
   const currentTeam = teams[currentTeamIndex];
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
   
-  const turn = gameState.phase === 'REVIEW' ? gameState.turn : null;
+  const isReview = gameState.phase === GamePhase.REVIEW;
+  const turn = isReview ? gameState.turn : null;
   const currentTurnWords = turn?.wordsPlayed || [];
 
   const handleSelectStatus = (
     index: number,
-    status: 'GOT_IT' | 'SKIPPED' | 'SECOND_CHANCE'
+    status: WordStatus
   ) => {
     updateReviewWord(index, status);
     setExpandedIndex(null);
   };
 
-  const getStatusStyles = (status: WordResult['status']) => {
+  const getStatusStyles = (status: WordStatus) => {
     switch (status) {
-      case 'GOT_IT':
+      case WordStatus.GOT_IT:
         return 'bg-green-100 border-green-200 text-green-800';
-      case 'SECOND_CHANCE':
+      case WordStatus.RECOVERED:
+      case WordStatus.SECOND_CHANCE:
         return 'bg-indigo-100 border-indigo-200 text-indigo-800';
-      case 'SKIPPED':
-      case 'UNPLAYED':
+      case WordStatus.SKIPPED:
         return 'bg-slate-100 border-slate-200 text-slate-400 opacity-75';
       default:
         return 'bg-slate-50 border-slate-100';
     }
   };
 
-  const getStatusIcon = (status: WordResult['status']) => {
+  const getStatusIcon = (status: WordStatus) => {
     const iconContainerClass = 'h-6 flex items-center justify-center mb-1';
     const labelClass =
       'text-[10px] font-bold uppercase tracking-wider leading-none';
 
     switch (status) {
-      case 'GOT_IT':
+      case WordStatus.GOT_IT:
         return (
           <div className="flex w-16 flex-col items-center text-inherit">
             <div className={iconContainerClass}>
@@ -63,7 +64,8 @@ export const Review: React.FC = () => {
             <span className={labelClass}>Got It</span>
           </div>
         );
-      case 'SECOND_CHANCE':
+      case WordStatus.RECOVERED:
+      case WordStatus.SECOND_CHANCE:
         return (
           <div className="flex w-16 flex-col items-center text-inherit">
             <div className={iconContainerClass}>
@@ -85,11 +87,13 @@ export const Review: React.FC = () => {
   };
 
   const roundScore = currentTurnWords.reduce((acc, word) => {
-    if (word.status === 'GOT_IT') return acc + pointsPerWord;
-    if (word.status === 'SECOND_CHANCE')
+    if (word.status === WordStatus.GOT_IT) return acc + pointsPerWord;
+    if (word.status === WordStatus.RECOVERED || word.status === WordStatus.SECOND_CHANCE)
       return acc + pointsPerWord * secondChanceValue;
     return acc;
   }, 0);
+
+  if (!isReview) return null;
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-50 py-6 safe-screen">
@@ -151,9 +155,9 @@ export const Review: React.FC = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleSelectStatus(index, 'SKIPPED');
+                      handleSelectStatus(index, WordStatus.SKIPPED);
                     }}
-                    className={`flex flex-col items-center justify-center gap-1 rounded-xl border-b-[3px] px-1 py-3 text-xs font-bold tracking-wider uppercase transition-all active:translate-y-[3px] active:border-b-0 ${item.status === 'SKIPPED' ? 'border-slate-900 bg-slate-700 text-white shadow-lg' : 'border-slate-300 bg-slate-100 text-slate-500 hover:bg-slate-200'} `}
+                    className={`flex flex-col items-center justify-center gap-1 rounded-xl border-b-[3px] px-1 py-3 text-xs font-bold tracking-wider uppercase transition-all active:translate-y-[3px] active:border-b-0 ${item.status === WordStatus.SKIPPED ? 'border-slate-900 bg-slate-700 text-white shadow-lg' : 'border-slate-300 bg-slate-100 text-slate-500 hover:bg-slate-200'} `}
                   >
                     <span className="mb-1 text-lg leading-none">✕</span>
                     Missed
@@ -163,9 +167,9 @@ export const Review: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleSelectStatus(index, 'SECOND_CHANCE');
+                        handleSelectStatus(index, WordStatus.RECOVERED);
                       }}
-                      className={`flex flex-col items-center justify-center gap-1 rounded-xl border-b-[3px] px-1 py-3 text-xs font-bold tracking-wider uppercase transition-all active:translate-y-[3px] active:border-b-0 ${item.status === 'SECOND_CHANCE' ? 'border-indigo-700 bg-indigo-500 text-white shadow-lg' : 'border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} `}
+                      className={`flex flex-col items-center justify-center gap-1 rounded-xl border-b-[3px] px-1 py-3 text-xs font-bold tracking-wider uppercase transition-all active:translate-y-[3px] active:border-b-0 ${item.status === WordStatus.RECOVERED || item.status === WordStatus.SECOND_CHANCE ? 'border-indigo-700 bg-indigo-500 text-white shadow-lg' : 'border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} `}
                     >
                       <RecoverIcon />
                       Recovery
@@ -175,9 +179,9 @@ export const Review: React.FC = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleSelectStatus(index, 'GOT_IT');
+                      handleSelectStatus(index, WordStatus.GOT_IT);
                     }}
-                    className={`flex flex-col items-center justify-center gap-1 rounded-xl border-b-[3px] px-1 py-3 text-xs font-bold tracking-wider uppercase transition-all active:translate-y-[3px] active:border-b-0 ${item.status === 'GOT_IT' ? 'border-green-700 bg-green-500 text-white shadow-lg' : 'border-green-200 bg-green-50 text-green-600 hover:bg-green-100'} `}
+                    className={`flex flex-col items-center justify-center gap-1 rounded-xl border-b-[3px] px-1 py-3 text-xs font-bold tracking-wider uppercase transition-all active:translate-y-[3px] active:border-b-0 ${item.status === WordStatus.GOT_IT ? 'border-green-700 bg-green-500 text-white shadow-lg' : 'border-green-200 bg-green-50 text-green-600 hover:bg-green-100'} `}
                   >
                     <span className="mb-1 text-lg leading-none">✓</span>
                     Got It

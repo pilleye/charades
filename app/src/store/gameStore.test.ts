@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from '../test/test-utils';
+import { GamePhase, TurnSubPhase } from './types';
 
 // Define the mock storage outside
 const mockStorage = new Map<string, string>();
@@ -74,7 +75,7 @@ describe('GameStore Persistence & Migration', () => {
     const validState = {
       state: {
         roundDuration: 120,
-        gameState: { phase: 'SETUP' },
+        gameState: { phase: GamePhase.SETUP },
         teams: []
       },
       version: 2
@@ -87,13 +88,25 @@ describe('GameStore Persistence & Migration', () => {
     const state = useGameStore.getState();
 
     expect(state.roundDuration).toBe(120);
-    expect(state.gameState.phase).toBe('SETUP');
+    expect(state.gameState.phase).toBe(GamePhase.SETUP);
   });
 
   it('should auto-pause when rehydrating active game', () => {
     const activeState = {
       state: {
-        gameState: { phase: 'ACTIVE', isPaused: false },
+        gameState: { 
+          phase: GamePhase.ACTIVE_TURN, 
+          subPhase: TurnSubPhase.PLAYING,
+          isPaused: false,
+          turn: {
+            timeRemaining: 30,
+            skipsRemaining: 3,
+            activeWord: null,
+            wordsPlayed: [],
+            secondChanceQueue: [],
+            secondChanceIndex: 0
+          }
+        },
         currentRound: 2
       },
       version: 2
@@ -105,7 +118,7 @@ describe('GameStore Persistence & Migration', () => {
 
     const state = useGameStore.getState();
 
-    expect(state.gameState.phase).toBe('ACTIVE');
+    expect(state.gameState.phase).toBe(GamePhase.ACTIVE_TURN);
     expect(state.gameState.isPaused).toBe(true);
     expect(state.currentRound).toBe(2);
   });

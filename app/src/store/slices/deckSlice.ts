@@ -32,7 +32,7 @@ export const createDeckSlice: GameSliceCreator<DeckSlice> = (set, get) => ({
   availableWords: [],
   usedWords: [],
 
-  drawNextCard: (): DeckItem => {
+  drawNextCard: (): DeckItem | null => {
     const { availableWords, usedWords, selectedDeck, customWords } = get();
     const isPremium = useSubscriptionStore.getState().status === 'active';
     let deck = [...availableWords];

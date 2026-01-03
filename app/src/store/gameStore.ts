@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { GamePhase } from './types';
 import type { RootState } from './types';
 import { createSettingsSlice } from './slices/settingsSlice';
 import { createTeamSlice } from './slices/teamSlice';
@@ -19,18 +20,14 @@ export const useGameStore = create<RootState>()(
     {
       name: 'charades-game-storage',
       version: 2,
-      migrate: (persistedState: any, version) => {
+      migrate: (persistedState: unknown, version) => {
         if (version !== 2) {
           return {}; // Return empty object to reset to default state on version mismatch
         }
         return persistedState;
       },
       onRehydrateStorage: () => (state) => {
-        if (state && (
-          state.gameState.phase === 'ACTIVE' || 
-          state.gameState.phase === 'COUNTDOWN' ||
-          state.gameState.phase === 'SECOND_CHANCE'
-        )) {
+        if (state && state.gameState.phase === GamePhase.ACTIVE_TURN) {
           state.gameState = { ...state.gameState, isPaused: true };
         }
       },
@@ -59,3 +56,4 @@ export const useGameStore = create<RootState>()(
 );
 
 export type { Team, WordResult } from './types';
+export { GamePhase, TurnSubPhase, WordStatus } from './types';

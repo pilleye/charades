@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useGameStore } from '@/store/gameStore';
+import { useGameStore, GamePhase, TurnSubPhase } from '@/store/gameStore';
 import { soundEngine } from '@/lib/audio';
 import { GameContainer } from './GameContainer';
 import { Setup } from './Setup';
@@ -14,7 +14,6 @@ import { SecondChanceRound } from './SecondChanceRound';
 
 export const CharadesApp: React.FC = () => {
   const gameState = useGameStore((state) => state.gameState);
-  const { phase } = gameState;
 
   useEffect(() => {
     const handleResume = async () => {
@@ -31,13 +30,11 @@ export const CharadesApp: React.FC = () => {
       } else {
         const { gameState: currentGameState } = useGameStore.getState();
         if (
-          (currentGameState.phase === 'ACTIVE' || 
-           currentGameState.phase === 'COUNTDOWN' || 
-           currentGameState.phase === 'SECOND_CHANCE') &&
+          currentGameState.phase === GamePhase.ACTIVE_TURN &&
           !currentGameState.isPaused
         ) {
           useGameStore.setState({ 
-            gameState: { ...currentGameState, isPaused: true } as any
+            gameState: { ...currentGameState, isPaused: true }
           });
         }
       }
@@ -46,13 +43,11 @@ export const CharadesApp: React.FC = () => {
     const handleBlur = () => {
       const { gameState: currentGameState } = useGameStore.getState();
       if (
-        (currentGameState.phase === 'ACTIVE' || 
-         currentGameState.phase === 'COUNTDOWN' || 
-         currentGameState.phase === 'SECOND_CHANCE') &&
+        currentGameState.phase === GamePhase.ACTIVE_TURN &&
         !currentGameState.isPaused
       ) {
         useGameStore.setState({ 
-          gameState: { ...currentGameState, isPaused: true } as any
+          gameState: { ...currentGameState, isPaused: true }
         });
       }
     };
@@ -92,20 +87,26 @@ export const CharadesApp: React.FC = () => {
   }, []);
 
   const renderPhase = () => {
-    switch (phase) {
-      case 'SETUP':
+    switch (gameState.phase) {
+      case GamePhase.SETUP:
+      case GamePhase.GAME_OVER:
         return <Setup />;
-      case 'READY_CHECK':
+      case GamePhase.READY_CHECK:
         return <ReadyCheck />;
-      case 'COUNTDOWN':
-        return <Countdown />;
-      case 'ACTIVE':
-        return <ActivePlay />;
-      case 'SECOND_CHANCE':
-        return <SecondChanceRound />;
-      case 'REVIEW':
+      case GamePhase.ACTIVE_TURN:
+        switch (gameState.subPhase) {
+          case TurnSubPhase.COUNTDOWN:
+            return <Countdown />;
+          case TurnSubPhase.PLAYING:
+            return <ActivePlay />;
+          case TurnSubPhase.SECOND_CHANCE:
+            return <SecondChanceRound />;
+          default:
+            return <Setup />;
+        }
+      case GamePhase.REVIEW:
         return <Review />;
-      case 'SCOREBOARD':
+      case GamePhase.SCOREBOARD:
         return <Scoreboard />;
       default:
         return <Setup />;

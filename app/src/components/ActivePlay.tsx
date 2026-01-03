@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useGameStore } from '@/store/gameStore';
+import { useGameStore, GamePhase, TurnSubPhase, WordStatus } from '@/store/gameStore';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useTimer } from '@/hooks/useTimer';
 import { getWordFontSize } from '@/lib/typography';
@@ -18,6 +18,7 @@ export const ActivePlay: React.FC = () => {
   const {
     markWord,
     endTurn,
+    updateTimer,
     gameState,
     togglePause,
     roundDuration,
@@ -34,9 +35,9 @@ export const ActivePlay: React.FC = () => {
     currentTeamIndex,
   } = useGameStore();
 
-  const isActive = gameState.phase === 'ACTIVE';
-  const turn = isActive ? gameState.turn : null;
-  const isPaused = isActive ? gameState.isPaused : false;
+  const isActiveTurn = gameState.phase === GamePhase.ACTIVE_TURN && gameState.subPhase === TurnSubPhase.PLAYING;
+  const turn = isActiveTurn ? gameState.turn : null;
+  const isPaused = gameState.phase === GamePhase.ACTIVE_TURN ? gameState.isPaused : false;
 
   const turnTimeRemaining = turn?.timeRemaining ?? 0;
   const turnSkipsRemaining = turn?.skipsRemaining ?? 0;
@@ -51,16 +52,7 @@ export const ActivePlay: React.FC = () => {
     initialTime: turnTimeRemaining,
     autoStart: !isPaused,
     onTick: (rem) => {
-      // Safely update nested state
-      useGameStore.setState((state) => {
-        if (state.gameState.phase !== 'ACTIVE') return {};
-        return {
-          gameState: {
-            ...state.gameState,
-            turn: { ...state.gameState.turn, timeRemaining: rem }
-          }
-        };
-      });
+      updateTimer(rem);
       if (rem > 0) playTick();
     },
     onFinish: () => {
@@ -90,13 +82,13 @@ export const ActivePlay: React.FC = () => {
 
   const handleGotIt = () => {
     playCorrect();
-    markWord('GOT_IT');
+    markWord(WordStatus.GOT_IT);
   };
 
   const handleSkip = () => {
     if (turnSkipsRemaining === 0) return;
     playSkip();
-    markWord('SKIPPED');
+    markWord(WordStatus.SKIPPED);
   };
 
   const handleResume = () => {

@@ -1,16 +1,13 @@
+import { GamePhase } from '../types';
 import type { GameSliceCreator, GameSlice } from '../types';
 
 export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
-  gameState: { phase: 'SETUP', isGameOver: false },
+  gameState: { phase: GamePhase.SETUP },
   currentRound: 1,
 
   togglePause: () => set((state) => {
     const { gameState } = state;
-    if (
-      gameState.phase === 'COUNTDOWN' ||
-      gameState.phase === 'ACTIVE' ||
-      gameState.phase === 'SECOND_CHANCE'
-    ) {
+    if (gameState.phase === GamePhase.ACTIVE_TURN) {
       return {
         gameState: { ...gameState, isPaused: !gameState.isPaused }
       };
@@ -21,7 +18,7 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
   startGame: () => {
     get().initializeDeck();
     set({
-      gameState: { phase: 'READY_CHECK' },
+      gameState: { phase: GamePhase.READY_CHECK },
       currentTeamIndex: 0,
       currentRound: 1,
     });
@@ -42,12 +39,12 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
     }
 
     if (isGameOver) {
-      set({ gameState: { phase: 'SETUP', isGameOver: true } });
+      set({ gameState: { phase: GamePhase.GAME_OVER } });
       return;
     }
 
     set({
-      gameState: { phase: 'READY_CHECK' },
+      gameState: { phase: GamePhase.READY_CHECK },
       currentTeamIndex: nextIndex,
       currentRound: nextRound,
     });
@@ -58,7 +55,7 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
     const resetTeams = teams.map((t) => ({ ...t, score: 0 }));
     get().initializeDeck();
     set({
-      gameState: { phase: 'SETUP', isGameOver: false },
+      gameState: { phase: GamePhase.SETUP },
       teams: resetTeams,
       currentRound: 1,
     });

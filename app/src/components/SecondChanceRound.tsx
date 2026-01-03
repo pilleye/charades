@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useGameStore } from '@/store/gameStore';
+import React from 'react';
+import { useGameStore, GamePhase, TurnSubPhase } from '@/store/gameStore';
 import { soundEngine } from '@/lib/audio';
 import { useWakeLock } from '@/hooks/useWakeLock';
 import { TEAM_COLORS } from '@/constants';
@@ -19,9 +19,9 @@ export const SecondChanceRound: React.FC = () => {
     currentTeamIndex,
   } = useGameStore();
 
-  const isSecondChance = gameState.phase === 'SECOND_CHANCE';
+  const isSecondChance = gameState.phase === GamePhase.ACTIVE_TURN && gameState.subPhase === TurnSubPhase.SECOND_CHANCE;
   const turn = isSecondChance ? gameState.turn : null;
-  const isPaused = isSecondChance ? gameState.isPaused : false;
+  const isPaused = gameState.phase === GamePhase.ACTIVE_TURN ? gameState.isPaused : false;
 
   const secondChanceQueue = turn?.secondChanceQueue || [];
   const secondChanceIndex = turn?.secondChanceIndex || 0;
@@ -46,6 +46,8 @@ export const SecondChanceRound: React.FC = () => {
     soundEngine.playSkip().catch(console.error);
     resolveSecondChance(false);
   };
+
+  if (!isSecondChance) return null;
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-indigo-950 text-white">
