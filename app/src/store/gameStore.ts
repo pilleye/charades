@@ -56,3 +56,4 @@ export const useGameStore = create<RootState>()(
 
 export type { Team, WordResult } from './types';
 export { GamePhase, TurnSubPhase, WordStatus } from './types';
+export { getTeamByIndex, getCurrentTeam } from './utils/teamAccess';

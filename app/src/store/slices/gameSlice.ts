@@ -1,5 +1,7 @@
 import { GamePhase } from '../types';
 import type { GameSliceCreator, GameSlice } from '../types';
+import { makeScore } from '../types/branded';
+import { clampTeamIndex } from '../utils/teamAccess';
 
 export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
   gameState: { phase: GamePhase.SETUP },
@@ -9,9 +11,9 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
     const { gameState } = state;
     if (gameState.phase === GamePhase.ACTIVE_TURN) {
       return {
-        gameState: { 
-          ...gameState, 
-          isPaused: !gameState.isPaused 
+        gameState: {
+          ...gameState,
+          isPaused: !gameState.isPaused
         }
       };
     }
@@ -21,9 +23,9 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
   startGame: () => {
     get().initializeDeck();
     set({
-      gameState: { 
+      gameState: {
         phase: GamePhase.READY_CHECK,
-        currentTeamIndex: 0 
+        currentTeamIndex: 0
       },
       currentRound: 1,
     });
@@ -31,9 +33,17 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
 
   nextTeam: () => {
     const { teams, gameState, currentRound, totalRounds } = get();
-    
-    // Fallback if currentTeamIndex isn't in current phase
-    const currentIndex = 'currentTeamIndex' in gameState ? gameState.currentTeamIndex : 0;
+
+    // Guard against empty teams array
+    if (teams.length === 0) {
+      console.warn('nextTeam: No teams available');
+      set({ gameState: { phase: GamePhase.GAME_OVER } });
+      return;
+    }
+
+    // Fallback if currentTeamIndex isn't in current phase, and clamp to valid range
+    const rawIndex = 'currentTeamIndex' in gameState ? gameState.currentTeamIndex : 0;
+    const currentIndex = clampTeamIndex(rawIndex, teams.length);
     const nextIndex = (currentIndex + 1) % teams.length;
 
     let nextRound = currentRound;
@@ -52,9 +62,9 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
     }
 
     set({
-      gameState: { 
+      gameState: {
         phase: GamePhase.READY_CHECK,
-        currentTeamIndex: nextIndex 
+        currentTeamIndex: nextIndex
       },
       currentRound: nextRound,
     });
@@ -62,7 +72,7 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
 
   resetGame: () => {
     const { teams } = get();
-    const resetTeams = teams.map((t) => ({ ...t, score: 0 }));
+    const resetTeams = teams.map((t) => ({ ...t, score: makeScore(0) }));
     get().initializeDeck();
     set({
       gameState: { phase: GamePhase.SETUP },

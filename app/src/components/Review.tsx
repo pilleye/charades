@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useGameStore, GamePhase, WordStatus } from '@/store/gameStore';
+import { useGameStore, GamePhase, WordStatus, getTeamByIndex } from '@/store/gameStore';
 import { Button } from './ui/Button';
 import { RecoverIcon } from './ui/Icons';
 import { TeamBadge } from './ui/TeamBadge';
@@ -22,7 +22,14 @@ export const Review: React.FC = () => {
   if (gameState.phase !== GamePhase.REVIEW) return null;
 
   const { currentTeamIndex, wordsPlayed: currentTurnWords } = gameState;
-  const currentTeam = teams[currentTeamIndex];
+  const currentTeam = getTeamByIndex(teams, currentTeamIndex);
+
+  // Guard against invalid team index - should not happen but prevents crash
+  if (!currentTeam) {
+    console.error(`Review: Invalid team index ${currentTeamIndex}`);
+    return null;
+  }
+
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
   
   const handleSelectStatus = (

@@ -1,6 +1,8 @@
 import { GamePhase, TurnSubPhase, WordStatus } from '../types';
 import type { DeckItem } from '@/data/decks/types';
 import type { GameSliceCreator, TurnSlice } from '../types';
+import { addToScore } from '../types/branded';
+import { isValidTeamIndex } from '../utils/teamAccess';
 
 export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
   startTurn: () => {
@@ -238,6 +240,20 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
     if (gameState.phase !== GamePhase.REVIEW) return;
 
     const { wordsPlayed, currentTeamIndex } = gameState;
+
+    // Guard against invalid team index
+    if (!isValidTeamIndex(currentTeamIndex, teams.length)) {
+      console.error(`applyReviewScores: Invalid team index ${currentTeamIndex}`);
+      // Transition to scoreboard anyway to avoid being stuck
+      set({
+        gameState: {
+          phase: GamePhase.SCOREBOARD,
+          currentTeamIndex: 0
+        },
+      });
+      return;
+    }
+
     let points = 0;
     const wordsToReturnToDeck: DeckItem[] = [];
     const wordsUsed: DeckItem[] = [];
@@ -256,15 +272,18 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
     });
 
     const newTeams = [...teams];
-    newTeams[currentTeamIndex].score += points;
-    
+    newTeams[currentTeamIndex] = {
+      ...newTeams[currentTeamIndex],
+      score: addToScore(newTeams[currentTeamIndex].score, points),
+    };
+
     set({
       teams: newTeams,
       availableWords: [...availableWords, ...wordsToReturnToDeck],
       usedWords: [...usedWords, ...wordsUsed],
-      gameState: { 
+      gameState: {
         phase: GamePhase.SCOREBOARD,
-        currentTeamIndex 
+        currentTeamIndex
       },
     });
   },

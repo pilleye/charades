@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useGameStore, GamePhase } from '@/store/gameStore';
+import { useGameStore, GamePhase, getTeamByIndex } from '@/store/gameStore';
 import { useWakeLock } from '@/hooks/useWakeLock';
 import { Button } from './ui/Button';
 import { TEAM_COLORS } from '@/constants';
@@ -9,13 +9,20 @@ import { TEAM_COLORS } from '@/constants';
 export const ReadyCheck: React.FC = () => {
   const { teams, gameState, startTurn, currentRound, totalRounds } =
     useGameStore();
-  
+
   useWakeLock(gameState.phase === GamePhase.READY_CHECK);
-  
+
   if (gameState.phase !== GamePhase.READY_CHECK) return null;
-  
+
   const { currentTeamIndex } = gameState;
-  const currentTeam = teams[currentTeamIndex];
+  const currentTeam = getTeamByIndex(teams, currentTeamIndex);
+
+  // Guard against invalid team index - should not happen but prevents crash
+  if (!currentTeam) {
+    console.error(`ReadyCheck: Invalid team index ${currentTeamIndex}`);
+    return null;
+  }
+
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
 
   const roundLabel =

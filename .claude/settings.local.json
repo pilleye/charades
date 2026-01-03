@@ -9,7 +9,10 @@
       "Bash(bun add:*)",
       "Bash(cat:*)",
       "Bash(wc:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(bun run tsc:*)",
+      "Bash(npx tsc:*)",
+      "Bash(bun run lint)"
     ],
     "deny": [],
     "ask": []

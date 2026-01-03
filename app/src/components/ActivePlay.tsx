@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useGameStore, GamePhase, TurnSubPhase, WordStatus } from '@/store/gameStore';
+import { useGameStore, GamePhase, TurnSubPhase, WordStatus, getTeamByIndex } from '@/store/gameStore';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useTimer } from '@/hooks/useTimer';
 import { useWakeLock } from '@/hooks/useWakeLock';
@@ -77,11 +77,18 @@ export const ActivePlay: React.FC = () => {
   }, [isPaused, pause, start]);
 
   if (!isActiveTurn || !turn || turn.subPhase !== TurnSubPhase.PLAYING) return null;
-  
+
   const { currentTeamIndex } = gameState;
   const { skipsRemaining: turnSkipsRemaining, activeWord: currentActiveWord } = turn;
 
-  const currentTeam = teams[currentTeamIndex];
+  const currentTeam = getTeamByIndex(teams, currentTeamIndex);
+
+  // Guard against invalid team index - should not happen but prevents crash
+  if (!currentTeam) {
+    console.error(`ActivePlay: Invalid team index ${currentTeamIndex}`);
+    return null;
+  }
+
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
   
   // Helpers for settings controls

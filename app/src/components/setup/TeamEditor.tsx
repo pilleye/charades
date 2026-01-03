@@ -6,6 +6,7 @@ import { TeamColorButton } from '../ui/TeamBadge';
 import { DragHandleIcon } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
 import { useDragReorder } from '@/hooks/useDragReorder';
+import { makeTeamName, makeScore } from '@/store/types/branded';
 
 interface TeamEditorProps {
   teams: Team[];
@@ -23,8 +24,19 @@ export const TeamEditor: React.FC<TeamEditorProps> = ({ teams, onTeamsChange }) 
 
   const updateTeamName = (index: number, name: string) => {
     const newTeams = [...teams];
-    newTeams[index].name = name;
-    onTeamsChange(newTeams);
+    // Allow empty input during editing but store the validated name
+    // If the name is invalid (empty/whitespace), keep the previous valid name
+    const validName = makeTeamName(name);
+    if (validName !== null) {
+      newTeams[index] = { ...newTeams[index], name: validName };
+      onTeamsChange(newTeams);
+    } else if (name === '') {
+      // Allow clearing the field temporarily for UX but use a placeholder name
+      const fallbackName = makeTeamName(`Team ${index + 1}`)!;
+      newTeams[index] = { ...newTeams[index], name: fallbackName };
+      onTeamsChange(newTeams);
+    }
+    // If name is whitespace only, ignore the change (keep previous valid name)
   };
 
   const updateTeamColor = (index: number, colorIdx: number) => {
@@ -45,8 +57,8 @@ export const TeamEditor: React.FC<TeamEditorProps> = ({ teams, onTeamsChange }) 
         }
         newTeams.push({
           id: Date.now() + i,
-          name: `Team ${i + 1}`,
-          score: 0,
+          name: makeTeamName(`Team ${i + 1}`)!,
+          score: makeScore(0),
           colorIndex: nextColorIndex % TEAM_COLORS.length,
         });
         usedColors.add(nextColorIndex % TEAM_COLORS.length);

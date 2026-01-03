@@ -1,5 +1,5 @@
 import React from 'react';
-import { useGameStore, GamePhase, TurnSubPhase } from '@/store/gameStore';
+import { useGameStore, GamePhase, TurnSubPhase, getTeamByIndex } from '@/store/gameStore';
 import { soundEngine } from '@/lib/audio';
 import { useWakeLock } from '@/hooks/useWakeLock';
 import { TEAM_COLORS } from '@/constants';
@@ -25,13 +25,20 @@ export const SecondChanceRound: React.FC = () => {
   useWakeLock(!isPaused);
 
   if (!isSecondChance) return null;
-  
+
   const { turn, currentTeamIndex } = gameState;
   if (turn.subPhase !== TurnSubPhase.SECOND_CHANCE) return null;
 
   const { secondChanceQueue, secondChanceIndex } = turn;
 
-  const currentTeam = teams[currentTeamIndex];
+  const currentTeam = getTeamByIndex(teams, currentTeamIndex);
+
+  // Guard against invalid team index - should not happen but prevents crash
+  if (!currentTeam) {
+    console.error(`SecondChanceRound: Invalid team index ${currentTeamIndex}`);
+    return null;
+  }
+
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
 
   const currentItem = secondChanceQueue[secondChanceIndex];

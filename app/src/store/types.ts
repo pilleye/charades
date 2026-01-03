@@ -1,5 +1,6 @@
 import type { StateCreator } from 'zustand';
 import type { DeckItem } from '@/data/decks/types';
+import type { Score, TeamName } from './types/branded';
 
 export type GameLimit = number | 'unlimited';
 
@@ -30,8 +31,8 @@ export type WordStatus = (typeof WordStatus)[keyof typeof WordStatus];
 
 export interface Team {
   id: number;
-  name: string;
-  score: number;
+  name: TeamName;
+  score: Score;
   colorIndex: number;
 }
 
