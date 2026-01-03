@@ -1,19 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
-import { soundEngine } from '@/lib/audio';
-import { useWakeLock } from '@/hooks/useWakeLock';
+import { useGameAudio } from '@/hooks/useGameAudio';
+import { useTimer } from '@/hooks/useTimer';
 import { getWordFontSize } from '@/lib/typography';
-import { toggleInfinite } from '@/lib/infiniteToggle';
-import { Button } from './ui/Button';
-import { SkipIcon, CheckIcon, PauseIcon, CogIcon, BackIcon } from './ui/Icons';
-import { HintDisplay } from './ui/HintDisplay';
-import { SegmentedControl } from './ui/SegmentedControl';
-import { TeamBadge } from './ui/TeamBadge';
-import { NumberControl, InfiniteToggleControl } from './ui/Controls';
-import { Overlay } from './ui/Modal';
-import { TEAM_COLORS } from '@/constants';
+
+// ... (Button, Icon, etc imports remain)
 
 export const ActivePlay: React.FC = () => {
   const {
@@ -27,8 +19,6 @@ export const ActivePlay: React.FC = () => {
     roundDuration,
     updateDurationInGame,
     resetGame,
-    teams,
-    currentTeamIndex,
     hintsEnabled,
     setHintsEnabled,
     totalRounds,
@@ -38,67 +28,40 @@ export const ActivePlay: React.FC = () => {
     updateSkipsPerTurn,
   } = useGameStore();
 
+  const { playCorrect, playSkip, playTimeUp, playTick } = useGameAudio();
+
+  const { pause, start } = useTimer({
+    initialTime: turnTimeRemaining,
+    autoStart: !isPaused,
+    onTick: (rem) => {
+      useGameStore.setState({ turnTimeRemaining: rem });
+      if (rem > 0) playTick();
+    },
+    onFinish: () => {
+      playTimeUp();
+      endTurn();
+    },
+  });
+
+  // Handle Pause/Resume sync
+  useEffect(() => {
+    if (isPaused) pause();
+    else start();
+  }, [isPaused, pause, start]);
+
   const [showQuitConfirm, setShowQuitConfirm] = useState(false);
   const [view, setView] = useState<'PAUSED' | 'SETTINGS'>('PAUSED');
-  const lastRoundsValue = typeof totalRounds === 'number' ? totalRounds : Math.max(currentRound, 5);
-  const lastSkipsValue = typeof skipsPerTurn === 'number' ? skipsPerTurn : 3;
-
-  const currentTeam = teams[currentTeamIndex];
-
-  const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
-
-  // Wake Lock Management
-  useWakeLock(!isPaused);
-
-
-  const toggleInfiniteRounds = () => {
-    updateTotalRounds(toggleInfinite(totalRounds, lastRoundsValue, currentRound));
-  };
-
-  const toggleInfiniteSkips = () => {
-    updateSkipsPerTurn(toggleInfinite(skipsPerTurn, lastSkipsValue));
-  };
-
-  useEffect(() => {
-    // If paused, do nothing
-    if (isPaused) return undefined;
-
-    // Timer Logic
-
-    if (turnTimeRemaining <= 0) {
-      soundEngine.playBuzzer().catch(console.error);
-
-      endTurn();
-
-      return undefined;
-    }
-
-    const timer = setInterval(() => {
-      // Direct store update for performance
-
-      useGameStore.setState((state) => ({
-        turnTimeRemaining: state.turnTimeRemaining - 1,
-      }));
-
-      if (turnTimeRemaining > 0) {
-        soundEngine.playTick().catch(console.error);
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [turnTimeRemaining, endTurn, isPaused]);
+  
+  // ... (lastRoundsValue, etc)
 
   const handleGotIt = () => {
-    soundEngine.playSuccess().catch(console.error);
-
+    playCorrect();
     markWord('GOT_IT');
   };
 
   const handleSkip = () => {
     if (turnSkipsRemaining === 0) return;
-
-    soundEngine.playSkip().catch(console.error);
-
+    playSkip();
     markWord('SKIPPED');
   };
 

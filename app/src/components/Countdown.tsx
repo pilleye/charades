@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useGameStore } from '@/store/gameStore';
-import { soundEngine } from '@/lib/audio';
-import { useWakeLock } from '@/hooks/useWakeLock';
-import { TEAM_COLORS } from '@/constants';
+import { useGameAudio } from '@/hooks/useGameAudio';
+import { useTimer } from '@/hooks/useTimer';
 import { PauseMenuOverlay } from './ui/PauseMenuOverlay';
 
 // Icons
@@ -26,47 +25,32 @@ const PauseIcon = () => (
 );
 
 export const Countdown: React.FC = () => {
-  const [count, setCount] = useState(3);
   const {
     drawWord,
-    teams,
-    currentTeamIndex,
     isPaused,
     togglePause,
     resetGame,
   } = useGameStore();
 
-  const currentTeam = teams[currentTeamIndex];
-  const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
+  const { playCountdown, playTick } = useGameAudio();
 
-  // Wake Lock Management
-  useWakeLock(!isPaused);
-
-  // Timer Logic
-  useEffect(() => {
-    if (isPaused) return undefined;
-
-    let timer: NodeJS.Timeout;
-
-    if (count > 0) {
-      // Play tick sound
-      soundEngine.playCountdown(false).catch(console.error);
-
-      timer = setTimeout(() => {
-        setCount((prev) => prev - 1);
-      }, 1000);
-    } else {
-      // GO! logic
-      soundEngine.playCountdown(true).catch(console.error);
-
-      timer = setTimeout(() => {
+  const { remaining: count, start, pause } = useTimer({
+    initialTime: 3,
+    autoStart: true,
+    onTick: () => playTick(),
+    onFinish: () => {
+      playCountdown();
+      setTimeout(() => {
         useGameStore.setState({ phase: 'ACTIVE' });
         drawWord();
       }, 800);
-    }
+    },
+  });
 
-    return () => clearTimeout(timer);
-  }, [count, isPaused, drawWord]);
+  useEffect(() => {
+    if (isPaused) pause();
+    else start();
+  }, [isPaused, pause, start]);
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-50">
