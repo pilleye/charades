@@ -6,25 +6,9 @@ import { soundEngine } from '@/lib/audio';
 import { wakeLockManager } from '@/lib/wakeLock';
 import { Button } from './ui/Button';
 import { TEAM_COLORS } from '@/constants';
+import { SkipIcon } from './ui/Icons';
 
 // Icons
-const DiscardIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={3}
-    stroke="currentColor"
-    className="h-8 w-8"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M6 18L18 6M6 6l12 12"
-    />
-  </svg>
-);
-
 const RecoverIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -178,14 +162,14 @@ export const SecondChanceRound: React.FC = () => {
 
         {/* Right/Bottom: Controls */}
         <div className="flex h-[35vh] gap-4 p-4 landscape:h-full landscape:w-72 landscape:flex-col landscape:justify-center landscape:border-l landscape:border-indigo-900/30 landscape:pb-4 safe-landscape-right">
-          {/* DISCARD Button */}
+          {/* SKIP Button */}
           <button
             onClick={handleDiscard}
             className={`flex flex-1 touch-manipulation flex-col items-center justify-center gap-2 rounded-3xl border-b-[8px] border-slate-900 bg-slate-800 text-slate-300 transition-all active:translate-y-[8px] active:border-b-0 active:bg-slate-700`}
           >
-            <DiscardIcon />
+            <SkipIcon />
             <span className="text-xl font-black tracking-wider uppercase">
-              Missed
+              Skip
             </span>
           </button>
 

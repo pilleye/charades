@@ -14,6 +14,7 @@ export const Review: React.FC = () => {
     applyReviewScores,
     pointsPerWord,
     secondChanceValue,
+    secondChanceEnabled,
     teams,
     currentTeamIndex,
   } = useGameStore();
@@ -143,7 +144,7 @@ export const Review: React.FC = () => {
 
               {/* Expandable Options Panel */}
               {isExpanded && (
-                <div className="animate-fade-in grid grid-cols-3 gap-2 p-2 pt-0 pb-3">
+                <div className={`animate-fade-in grid gap-2 p-2 pt-0 pb-3 ${secondChanceEnabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -155,17 +156,18 @@ export const Review: React.FC = () => {
                     Missed
                   </button>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelectStatus(index, 'SECOND_CHANCE');
-                    }}
-                    disabled={secondChanceValue === 0}
-                    className={`flex flex-col items-center justify-center gap-1 rounded-xl border-b-[3px] px-1 py-3 text-xs font-bold tracking-wider uppercase transition-all active:translate-y-[3px] active:border-b-0 ${secondChanceValue === 0 ? 'cursor-not-allowed border-slate-200 bg-slate-100 opacity-30 grayscale' : ''} ${item.status === 'SECOND_CHANCE' ? 'border-indigo-700 bg-indigo-500 text-white shadow-lg' : 'border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} `}
-                  >
-                    <RecoverIcon />
-                    Recovery
-                  </button>
+                  {secondChanceEnabled && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectStatus(index, 'SECOND_CHANCE');
+                      }}
+                      className={`flex flex-col items-center justify-center gap-1 rounded-xl border-b-[3px] px-1 py-3 text-xs font-bold tracking-wider uppercase transition-all active:translate-y-[3px] active:border-b-0 ${item.status === 'SECOND_CHANCE' ? 'border-indigo-700 bg-indigo-500 text-white shadow-lg' : 'border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} `}
+                    >
+                      <RecoverIcon />
+                      Recovery
+                    </button>
+                  )}
 
                   <button
                     onClick={(e) => {
