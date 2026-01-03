@@ -53,7 +53,7 @@ export const createDeckSlice: GameSliceCreator<DeckSlice> = (set, get) => ({
     const nextWord = deck.pop();
     set({ availableWords: deck });
     
-    return nextWord || { word: 'No Words Left!' };
+    return nextWord || null;
   },
 
   setDeckConfig: (selectedDeck, customWords) => set({ selectedDeck, customWords }),

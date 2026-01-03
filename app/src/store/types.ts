@@ -3,15 +3,6 @@ import type { DeckItem } from '@/data/decks/types';
 
 export type GameLimit = number | 'unlimited';
 
-export type GameState =
-  | { phase: 'SETUP' }
-  | { phase: 'READY_CHECK' }
-  | { phase: 'COUNTDOWN'; isPaused: boolean }
-  | { phase: 'ACTIVE'; isPaused: boolean }
-  | { phase: 'SECOND_CHANCE'; isPaused: boolean }
-  | { phase: 'REVIEW' }
-  | { phase: 'SCOREBOARD' };
-
 export interface Team {
   id: number;
   name: string;
@@ -24,6 +15,24 @@ export interface WordResult {
   status: 'GOT_IT' | 'SKIPPED' | 'SECOND_CHANCE' | 'UNPLAYED';
   originalItem?: DeckItem;
 }
+
+export interface TurnData {
+  timeRemaining: number;
+  skipsRemaining: GameLimit;
+  activeWord: DeckItem | null;
+  wordsPlayed: WordResult[];
+  secondChanceQueue: string[];
+  secondChanceIndex: number;
+}
+
+export type GameState =
+  | { phase: 'SETUP'; isGameOver: boolean }
+  | { phase: 'READY_CHECK' }
+  | { phase: 'COUNTDOWN'; turn: TurnData; isPaused: boolean }
+  | { phase: 'ACTIVE'; turn: TurnData; isPaused: boolean }
+  | { phase: 'SECOND_CHANCE'; turn: TurnData; isPaused: boolean }
+  | { phase: 'REVIEW'; turn: TurnData }
+  | { phase: 'SCOREBOARD' };
 
 export interface SettingsSlice {
   roundDuration: number;
@@ -52,27 +61,16 @@ export interface DeckSlice {
   customWords: string[];
   availableWords: DeckItem[];
   usedWords: DeckItem[];
-  // currentActiveWord removed - belongs to Turn
-  drawNextCard: () => DeckItem; // Returns the card, updates internal deck state
+  drawNextCard: () => DeckItem | null;
   setDeckConfig: (deckName: string, customWords: string[]) => void;
   addCustomWord: (word: string) => void;
   removeCustomWord: (word: string) => void;
   initializeDeck: () => void;
 }
 
-export interface ActiveTurn {
-  timeRemaining: number;
-  skipsRemaining: GameLimit;
-  activeWord: DeckItem | null;
-  wordsPlayed: WordResult[];
-  secondChanceQueue: string[];
-  secondChanceIndex: number;
-}
-
 export interface GameSlice {
   gameState: GameState;
   currentRound: number;
-  isGameOver: boolean;
   togglePause: () => void;
   startGame: () => void;
   nextTeam: () => void;
@@ -80,7 +78,6 @@ export interface GameSlice {
 }
 
 export interface TurnSlice {
-  turn: ActiveTurn | null; // Encapsulated Turn State
   startTurn: () => void;
   beginActiveRound: () => void;
   endTurn: () => void;

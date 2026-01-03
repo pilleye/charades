@@ -37,7 +37,7 @@ export const CharadesApp: React.FC = () => {
           !currentGameState.isPaused
         ) {
           useGameStore.setState({ 
-            gameState: { ...currentGameState, isPaused: true } 
+            gameState: { ...currentGameState, isPaused: true } as any
           });
         }
       }
@@ -52,7 +52,7 @@ export const CharadesApp: React.FC = () => {
         !currentGameState.isPaused
       ) {
         useGameStore.setState({ 
-          gameState: { ...currentGameState, isPaused: true } 
+          gameState: { ...currentGameState, isPaused: true } as any
         });
       }
     };

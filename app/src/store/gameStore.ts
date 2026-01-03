@@ -31,7 +31,7 @@ export const useGameStore = create<RootState>()(
           state.gameState.phase === 'COUNTDOWN' ||
           state.gameState.phase === 'SECOND_CHANCE'
         )) {
-          state.gameState.isPaused = true;
+          state.gameState = { ...state.gameState, isPaused: true };
         }
       },
       partialize: (state) => ({
@@ -51,12 +51,8 @@ export const useGameStore = create<RootState>()(
         gameState: state.gameState,
         currentTeamIndex: state.currentTeamIndex,
         currentRound: state.currentRound,
-        isGameOver: state.isGameOver,
         availableWords: state.availableWords,
         usedWords: state.usedWords,
-        
-        // Encapsulated Turn State
-        turn: state.turn,
       }),
     }
   )

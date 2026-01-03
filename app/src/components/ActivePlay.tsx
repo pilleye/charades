@@ -16,7 +16,6 @@ import { HintDisplay } from './ui/HintDisplay';
 
 export const ActivePlay: React.FC = () => {
   const {
-    turn,
     markWord,
     endTurn,
     gameState,
@@ -35,7 +34,9 @@ export const ActivePlay: React.FC = () => {
     currentTeamIndex,
   } = useGameStore();
 
-  const isPaused = gameState.phase === 'ACTIVE' ? gameState.isPaused : false;
+  const isActive = gameState.phase === 'ACTIVE';
+  const turn = isActive ? gameState.turn : null;
+  const isPaused = isActive ? gameState.isPaused : false;
 
   const turnTimeRemaining = turn?.timeRemaining ?? 0;
   const turnSkipsRemaining = turn?.skipsRemaining ?? 0;
@@ -51,9 +52,15 @@ export const ActivePlay: React.FC = () => {
     autoStart: !isPaused,
     onTick: (rem) => {
       // Safely update nested state
-      useGameStore.setState((state) => ({
-        turn: state.turn ? { ...state.turn, timeRemaining: rem } : null
-      }));
+      useGameStore.setState((state) => {
+        if (state.gameState.phase !== 'ACTIVE') return {};
+        return {
+          gameState: {
+            ...state.gameState,
+            turn: { ...state.gameState.turn, timeRemaining: rem }
+          }
+        };
+      });
       if (rem > 0) playTick();
     },
     onFinish: () => {

@@ -3,7 +3,7 @@ import { defaultDeckItems } from "./default";
 import { christmasDeckItems } from "./christmas";
 
 // Free tier configuration
-export const FREE_TIER_CARD_LIMIT = 1000;
+export const FREE_TIER_CARD_LIMIT = 50;
 export const FREE_TIER_CUSTOM_WORDS_ENABLED = false;
 
 // Normalize text for smarter duplicate detection

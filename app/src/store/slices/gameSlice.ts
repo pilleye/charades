@@ -1,9 +1,8 @@
 import type { GameSliceCreator, GameSlice } from '../types';
 
 export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
-  gameState: { phase: 'SETUP' },
+  gameState: { phase: 'SETUP', isGameOver: false },
   currentRound: 1,
-  isGameOver: false,
 
   togglePause: () => set((state) => {
     const { gameState } = state;
@@ -25,7 +24,6 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
       gameState: { phase: 'READY_CHECK' },
       currentTeamIndex: 0,
       currentRound: 1,
-      isGameOver: false,
     });
   },
 
@@ -44,7 +42,7 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
     }
 
     if (isGameOver) {
-      set({ gameState: { phase: 'SETUP' }, isGameOver: true });
+      set({ gameState: { phase: 'SETUP', isGameOver: true } });
       return;
     }
 
@@ -60,11 +58,9 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
     const resetTeams = teams.map((t) => ({ ...t, score: 0 }));
     get().initializeDeck();
     set({
-      gameState: { phase: 'SETUP' },
+      gameState: { phase: 'SETUP', isGameOver: false },
       teams: resetTeams,
       currentRound: 1,
-      turn: null, // Ensure strict cleanup
-      isGameOver: false,
     });
   },
 });

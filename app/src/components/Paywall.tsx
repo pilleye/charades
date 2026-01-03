@@ -99,7 +99,7 @@ export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) =>
             </span>
             <div className="flex flex-col">
               <span className="text-sm text-slate-500">
-                Only {productPrice || '$0.99'} / year
+                Only {productPrice || '$4.99'} / year
               </span>
               <span className="text-[10px] font-black text-orange-500 uppercase tracking-wider">
                 Full Premium Access
