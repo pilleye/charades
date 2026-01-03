@@ -56,7 +56,7 @@ export const ActivePlay: React.FC = () => {
       
       if (rem > 0) {
         if (rem <= 5) {
-          playUrgentTick(rem);
+          playUrgentTick();
         } else {
           // Audio Logic:
           // Quiet (0.005) until 10s

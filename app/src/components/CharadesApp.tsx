@@ -63,23 +63,22 @@ export const CharadesApp: React.FC = () => {
 
     // Comprehensive event listeners for mobile and desktop
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    document.addEventListener('touchstart', handleResume, { passive: true });
-    document.addEventListener('touchend', handleResume, { passive: true });
-    document.addEventListener('click', handleResume);
-    document.addEventListener('keydown', handleResume);
+    document.addEventListener('touchstart', handleResume, { passive: true, capture: true });
+    document.addEventListener('touchend', handleResume, { passive: true, capture: true });
+    document.addEventListener('mousedown', handleResume, { capture: true });
+    document.addEventListener('click', handleResume, { capture: true });
+    document.addEventListener('keydown', handleResume, { capture: true });
     window.addEventListener('focus', handleFocus);
     window.addEventListener('blur', handleBlur);
     window.addEventListener('pageshow', handlePageShow);
 
-    // Initial resume attempt
-    handleResume();
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      document.removeEventListener('touchstart', handleResume);
-      document.removeEventListener('touchend', handleResume);
-      document.removeEventListener('click', handleResume);
-      document.removeEventListener('keydown', handleResume);
+      document.removeEventListener('touchstart', handleResume, { capture: true });
+      document.removeEventListener('touchend', handleResume, { capture: true });
+      document.removeEventListener('mousedown', handleResume, { capture: true });
+      document.removeEventListener('click', handleResume, { capture: true });
+      document.removeEventListener('keydown', handleResume, { capture: true });
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('blur', handleBlur);
       window.removeEventListener('pageshow', handlePageShow);

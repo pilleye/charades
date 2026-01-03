@@ -4,6 +4,7 @@ import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private hapticsSupported = true;
+  private lastResumeAttempt = 0;
 
   constructor() {
     // Haptics support will be checked when first used
@@ -12,9 +13,20 @@ class SoundEngine {
   private getContext(): AudioContext {
     // If context is missing or closed, create a new one
     if (!this.ctx || this.ctx.state === 'closed') {
-      this.ctx = new (
-        window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-      )();
+      const AudioContextClass = (window.AudioContext || 
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext);
+      
+      if (!AudioContextClass) {
+        console.error('Web Audio API not supported in this environment');
+        throw new Error('Web Audio API not supported');
+      }
+
+      this.ctx = new AudioContextClass();
+      console.warn('[SoundEngine] AudioContext created. State:', this.ctx.state);
+
+      this.ctx.onstatechange = () => {
+        console.warn('[SoundEngine] AudioContext state changed to:', this.ctx?.state);
+      };
     }
 
     return this.ctx;
@@ -24,11 +36,17 @@ class SoundEngine {
     const ctx = this.getContext();
 
     if (ctx.state === 'suspended') {
-      try {
-        await ctx.resume();
-      } catch (err) {
-        console.error('Failed to resume audio context:', err);
-        throw err;
+      // Avoid spamming resume calls if they are failing
+      const now = Date.now();
+      if (now - this.lastResumeAttempt > 1000) {
+        this.lastResumeAttempt = now;
+        try {
+          console.warn('[SoundEngine] Attempting to resume context from ensureContextReady. Current state:', ctx.state);
+          await ctx.resume();
+          console.warn('[SoundEngine] Resume attempt finished. New state:', ctx.state);
+        } catch (err) {
+          console.error('[SoundEngine] Failed to resume audio context:', err);
+        }
       }
     }
 
@@ -60,20 +78,36 @@ class SoundEngine {
           break;
       }
     } catch (err) {
-      console.warn(`Haptics failed for ${type}, disabling:`, err);
+      console.warn(`[SoundEngine] Haptics failed for ${type}, disabling:`, err);
       this.hapticsSupported = false;
     }
   }
 
   public async resume() {
     // Explicit resume helper for audio context
-    const ctx = this.getContext();
-    if (ctx.state === 'suspended') {
-      try {
+    try {
+      const ctx = this.getContext();
+      console.warn('[SoundEngine] Manual resume requested. Current state:', ctx.state);
+      
+      if (ctx.state === 'suspended') {
         await ctx.resume();
-      } catch (err) {
-        console.error('Audio resume failed:', err);
+        console.warn('[SoundEngine] ctx.resume() completed. State now:', ctx.state);
       }
+
+      // If still suspended after resume (common on iOS if not a user gesture), 
+      // we can't do much more here, but we can try to prime it if it IS running.
+      if (ctx.state === 'running') {
+        // Prime with a silent sound to ensure it's "unlocked"
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        gain.gain.value = 0.001; 
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(0);
+        osc.stop(0.001);
+      }
+    } catch (err) {
+      console.error('[SoundEngine] Audio resume failed:', err);
     }
   }
 
@@ -234,7 +268,7 @@ class SoundEngine {
     }
   }
 
-  public async playUrgentTick(rem: number) {
+  public async playUrgentTick() {
     try {
       if (this.hapticsSupported) {
         await Haptics.impact({ style: ImpactStyle.Medium });
