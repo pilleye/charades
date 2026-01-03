@@ -5,7 +5,6 @@ export const createTeamSlice: GameSliceCreator<TeamSlice> = (set) => ({
     { id: 1, name: 'Team 1', score: 0, colorIndex: 0 },
     { id: 2, name: 'Team 2', score: 0, colorIndex: 1 },
   ],
-  currentTeamIndex: 0,
 
   setTeams: (teams) => set({ teams }),
 

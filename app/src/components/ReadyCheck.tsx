@@ -1,13 +1,17 @@
 'use client';
 
 import React from 'react';
-import { useGameStore } from '@/store/gameStore';
+import { useGameStore, GamePhase } from '@/store/gameStore';
 import { Button } from './ui/Button';
 import { TEAM_COLORS } from '@/constants';
 
 export const ReadyCheck: React.FC = () => {
-  const { teams, currentTeamIndex, startTurn, currentRound, totalRounds } =
+  const { teams, gameState, startTurn, currentRound, totalRounds } =
     useGameStore();
+  
+  if (gameState.phase !== GamePhase.READY_CHECK) return null;
+  
+  const { currentTeamIndex } = gameState;
   const currentTeam = teams[currentTeamIndex];
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
 

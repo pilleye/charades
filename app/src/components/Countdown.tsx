@@ -32,14 +32,10 @@ export const Countdown: React.FC = () => {
     togglePause,
     resetGame,
     teams,
-    currentTeamIndex,
   } = useGameStore();
 
-  const isCountdown = gameState.phase === GamePhase.ACTIVE_TURN && gameState.subPhase === TurnSubPhase.COUNTDOWN;
+  const isCountdown = gameState.phase === GamePhase.ACTIVE_TURN && gameState.turn.subPhase === TurnSubPhase.COUNTDOWN;
   const isPaused = gameState.phase === GamePhase.ACTIVE_TURN ? gameState.isPaused : false;
-
-  const currentTeam = teams[currentTeamIndex];
-  const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
 
   const { playCountdown, playReadyBeep } = useGameAudio();
 
@@ -68,6 +64,11 @@ export const Countdown: React.FC = () => {
   }, [isPaused, pause, start]);
 
   if (!isCountdown) return null;
+  
+  const { currentTeamIndex } = gameState;
+  const currentTeam = teams[currentTeamIndex];
+  const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
+
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-100">

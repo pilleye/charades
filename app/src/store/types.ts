@@ -41,26 +41,48 @@ export interface WordResult {
   originalItem?: DeckItem;
 }
 
-export interface TurnData {
-  timeRemaining: number;
-  skipsRemaining: GameLimit;
-  activeWord: DeckItem | null;
-  wordsPlayed: WordResult[];
-  secondChanceQueue: DeckItem[];
-  secondChanceIndex: number;
-}
+export type ActiveTurnState =
+  | {
+      subPhase: typeof TurnSubPhase.COUNTDOWN;
+      timeRemaining: number;
+      skipsRemaining: GameLimit;
+      wordsPlayed: WordResult[];
+    }
+  | {
+      subPhase: typeof TurnSubPhase.PLAYING;
+      timeRemaining: number;
+      skipsRemaining: GameLimit;
+      activeWord: DeckItem;
+      wordsPlayed: WordResult[];
+    }
+  | {
+      subPhase: typeof TurnSubPhase.SECOND_CHANCE;
+      secondChanceQueue: DeckItem[];
+      secondChanceIndex: number;
+      wordsPlayed: WordResult[];
+    };
 
 export type GameState =
   | { phase: typeof GamePhase.SETUP }
-  | { phase: typeof GamePhase.READY_CHECK }
+  | { 
+      phase: typeof GamePhase.READY_CHECK; 
+      currentTeamIndex: number; 
+    }
   | { 
       phase: typeof GamePhase.ACTIVE_TURN; 
-      subPhase: TurnSubPhase; 
-      turn: TurnData; 
-      isPaused: boolean 
+      currentTeamIndex: number;
+      isPaused: boolean;
+      turn: ActiveTurnState;
     }
-  | { phase: typeof GamePhase.REVIEW; turn: TurnData }
-  | { phase: typeof GamePhase.SCOREBOARD }
+  | { 
+      phase: typeof GamePhase.REVIEW; 
+      currentTeamIndex: number;
+      wordsPlayed: WordResult[];
+    }
+  | { 
+      phase: typeof GamePhase.SCOREBOARD;
+      currentTeamIndex: number;
+    }
   | { phase: typeof GamePhase.GAME_OVER };
 
 export interface SettingsSlice {
@@ -80,7 +102,6 @@ export interface SettingsSlice {
 
 export interface TeamSlice {
   teams: Team[];
-  currentTeamIndex: number;
   setTeams: (teams: Team[]) => void;
   updateTeamScore: (index: number, delta: number) => void;
 }

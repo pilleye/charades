@@ -93,7 +93,7 @@ export const CharadesApp: React.FC = () => {
       case GamePhase.READY_CHECK:
         return <ReadyCheck />;
       case GamePhase.ACTIVE_TURN:
-        switch (gameState.subPhase) {
+        switch (gameState.turn.subPhase) {
           case TurnSubPhase.COUNTDOWN:
             return <Countdown />;
           case TurnSubPhase.PLAYING:

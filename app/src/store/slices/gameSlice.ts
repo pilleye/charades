@@ -9,7 +9,10 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
     const { gameState } = state;
     if (gameState.phase === GamePhase.ACTIVE_TURN) {
       return {
-        gameState: { ...gameState, isPaused: !gameState.isPaused }
+        gameState: { 
+          ...gameState, 
+          isPaused: !gameState.isPaused 
+        }
       };
     }
     return {};
@@ -18,15 +21,20 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
   startGame: () => {
     get().initializeDeck();
     set({
-      gameState: { phase: GamePhase.READY_CHECK },
-      currentTeamIndex: 0,
+      gameState: { 
+        phase: GamePhase.READY_CHECK,
+        currentTeamIndex: 0 
+      },
       currentRound: 1,
     });
   },
 
   nextTeam: () => {
-    const { teams, currentTeamIndex, currentRound, totalRounds } = get();
-    const nextIndex = (currentTeamIndex + 1) % teams.length;
+    const { teams, gameState, currentRound, totalRounds } = get();
+    
+    // Fallback if currentTeamIndex isn't in current phase
+    const currentIndex = 'currentTeamIndex' in gameState ? gameState.currentTeamIndex : 0;
+    const nextIndex = (currentIndex + 1) % teams.length;
 
     let nextRound = currentRound;
     let isGameOver = false;
@@ -44,8 +52,10 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
     }
 
     set({
-      gameState: { phase: GamePhase.READY_CHECK },
-      currentTeamIndex: nextIndex,
+      gameState: { 
+        phase: GamePhase.READY_CHECK,
+        currentTeamIndex: nextIndex 
+      },
       currentRound: nextRound,
     });
   },

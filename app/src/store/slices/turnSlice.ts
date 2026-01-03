@@ -1,22 +1,22 @@
 import { GamePhase, TurnSubPhase, WordStatus } from '../types';
 import type { DeckItem } from '@/data/decks/types';
-import type { GameSliceCreator, TurnSlice, TurnData } from '../types';
+import type { GameSliceCreator, TurnSlice } from '../types';
 
 export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
   startTurn: () => {
-    const { roundDuration, skipsPerTurn } = get();
+    const { roundDuration, skipsPerTurn, gameState } = get();
+    const currentTeamIndex = 'currentTeamIndex' in gameState ? gameState.currentTeamIndex : 0;
+    
     set({
       gameState: {
         phase: GamePhase.ACTIVE_TURN,
-        subPhase: TurnSubPhase.COUNTDOWN,
+        currentTeamIndex,
         isPaused: false,
         turn: {
+          subPhase: TurnSubPhase.COUNTDOWN,
           timeRemaining: roundDuration,
           skipsRemaining: skipsPerTurn,
-          activeWord: null,
           wordsPlayed: [],
-          secondChanceQueue: [],
-          secondChanceIndex: 0,
         }
       }
     });
@@ -24,15 +24,23 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
 
   beginActiveRound: () => {
     const { gameState } = get();
-    if (gameState.phase !== GamePhase.ACTIVE_TURN || gameState.subPhase !== TurnSubPhase.COUNTDOWN) return;
+    if (gameState.phase !== GamePhase.ACTIVE_TURN || gameState.turn.subPhase !== TurnSubPhase.COUNTDOWN) return;
 
     const nextCard = get().drawNextCard();
+    if (!nextCard) {
+      // Edge case: No cards left in deck at the start of a turn
+      get().endTurn();
+      return;
+    }
+
     set({
       gameState: {
         ...gameState,
-        subPhase: TurnSubPhase.PLAYING,
         turn: {
-          ...gameState.turn,
+          subPhase: TurnSubPhase.PLAYING,
+          timeRemaining: gameState.turn.timeRemaining,
+          skipsRemaining: gameState.turn.skipsRemaining,
+          wordsPlayed: gameState.turn.wordsPlayed,
           activeWord: nextCard
         }
       }
@@ -42,6 +50,7 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
   updateTimer: (time) => {
     const { gameState } = get();
     if (gameState.phase !== GamePhase.ACTIVE_TURN) return;
+    if (gameState.turn.subPhase === TurnSubPhase.SECOND_CHANCE) return;
 
     set({
       gameState: {
@@ -55,35 +64,34 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
     const { gameState, secondChanceEnabled } = get();
     if (gameState.phase !== GamePhase.ACTIVE_TURN) return;
 
-    const { turn } = gameState;
-    const { activeWord, wordsPlayed } = turn;
-    const newHistory = [...wordsPlayed];
+    const { turn, currentTeamIndex } = gameState;
+    const newHistory = [...turn.wordsPlayed];
 
-    if (activeWord) {
+    let candidates: DeckItem[] = [];
+
+    if (turn.subPhase === TurnSubPhase.PLAYING) {
       newHistory.push({
-        word: activeWord.word,
+        word: turn.activeWord.word,
         status: WordStatus.SECOND_CHANCE,
-        originalItem: activeWord,
+        originalItem: turn.activeWord,
       });
+      candidates.push(turn.activeWord);
     }
 
-    const skippedCandidates = wordsPlayed
+    const skippedInTurn = turn.wordsPlayed
       .filter((w) => w.status === WordStatus.SECOND_CHANCE)
-      .map((w) => w.originalItem || { word: w.word });
-
-    const candidates = activeWord 
-      ? [activeWord, ...skippedCandidates] 
-      : skippedCandidates;
+      .map((w) => w.originalItem as DeckItem); // We know originalItem exists for these
+    
+    candidates = [...candidates, ...skippedInTurn];
 
     if (secondChanceEnabled && candidates.length > 0) {
       set({
         gameState: {
-          ...gameState,
-          subPhase: TurnSubPhase.SECOND_CHANCE,
+          phase: GamePhase.ACTIVE_TURN,
+          currentTeamIndex,
           isPaused: false,
           turn: {
-            ...turn,
-            activeWord: null,
+            subPhase: TurnSubPhase.SECOND_CHANCE,
             wordsPlayed: newHistory,
             secondChanceQueue: candidates,
             secondChanceIndex: 0,
@@ -91,18 +99,14 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
         }
       });
     } else {
-      // If no second chance, convert SECOND_CHANCE statuses to SKIPPED
       const finalHistory = newHistory.map(w => 
         w.status === WordStatus.SECOND_CHANCE ? { ...w, status: WordStatus.SKIPPED } : w
       );
       set({
         gameState: {
           phase: GamePhase.REVIEW,
-          turn: {
-            ...turn,
-            activeWord: null,
-            wordsPlayed: finalHistory,
-          }
+          currentTeamIndex,
+          wordsPlayed: finalHistory,
         }
       });
     }
@@ -110,22 +114,19 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
 
   markWord: (status) => {
     const { gameState } = get();
-    if (gameState.phase !== GamePhase.ACTIVE_TURN || gameState.subPhase !== TurnSubPhase.PLAYING) return;
+    if (gameState.phase !== GamePhase.ACTIVE_TURN || gameState.turn.subPhase !== TurnSubPhase.PLAYING) return;
 
-    const { turn } = gameState;
-    const { activeWord, wordsPlayed, skipsRemaining } = turn;
+    const { turn, currentTeamIndex, isPaused } = gameState;
+    const { activeWord, wordsPlayed, skipsRemaining, timeRemaining } = turn;
 
-    let nextHistory = wordsPlayed;
-    if (activeWord) {
-      nextHistory = [
-        ...wordsPlayed,
-        {
-          word: activeWord.word,
-          status: status === WordStatus.SKIPPED ? WordStatus.SECOND_CHANCE : status,
-          originalItem: activeWord,
-        },
-      ];
-    }
+    const nextHistory = [
+      ...wordsPlayed,
+      {
+        word: activeWord.word,
+        status: status === WordStatus.SKIPPED ? WordStatus.SECOND_CHANCE : status,
+        originalItem: activeWord,
+      },
+    ];
 
     let newSkips = skipsRemaining;
     if (status === WordStatus.SKIPPED && skipsRemaining !== 'unlimited') {
@@ -134,14 +135,35 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
 
     const nextCard = get().drawNextCard();
 
+    if (!nextCard) {
+      // If no more cards, transition to next phase immediately
+      set({
+        gameState: {
+          phase: GamePhase.ACTIVE_TURN,
+          currentTeamIndex,
+          isPaused,
+          turn: {
+            subPhase: TurnSubPhase.PLAYING, // Temporary so endTurn can transition
+            activeWord: activeWord, // Won't be used as we call endTurn next
+            wordsPlayed: nextHistory,
+            skipsRemaining: newSkips,
+            timeRemaining
+          }
+        }
+      });
+      get().endTurn();
+      return;
+    }
+
     set({
       gameState: {
         ...gameState,
         turn: {
-          ...turn,
+          subPhase: TurnSubPhase.PLAYING,
           wordsPlayed: nextHistory,
           skipsRemaining: newSkips,
           activeWord: nextCard,
+          timeRemaining
         }
       }
     });
@@ -149,9 +171,9 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
 
   resolveSecondChance: (success) => {
     const { gameState } = get();
-    if (gameState.phase !== GamePhase.ACTIVE_TURN || gameState.subPhase !== TurnSubPhase.SECOND_CHANCE) return;
+    if (gameState.phase !== GamePhase.ACTIVE_TURN || gameState.turn.subPhase !== TurnSubPhase.SECOND_CHANCE) return;
 
-    const { turn } = gameState;
+    const { turn, currentTeamIndex } = gameState;
     const { secondChanceQueue, secondChanceIndex, wordsPlayed } = turn;
     const currentItem = secondChanceQueue[secondChanceIndex];
     const currentWord = currentItem.word;
@@ -163,23 +185,24 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
     );
 
     const nextIndex = secondChanceIndex + 1;
-    const updates: Partial<TurnData> = {
-      wordsPlayed: newHistory,
-      secondChanceIndex: nextIndex
-    };
 
     if (nextIndex >= secondChanceQueue.length) {
       set({
         gameState: {
           phase: GamePhase.REVIEW,
-          turn: { ...turn, ...updates }
+          currentTeamIndex,
+          wordsPlayed: newHistory,
         }
       });
     } else {
       set({
         gameState: {
           ...gameState,
-          turn: { ...turn, ...updates }
+          turn: {
+            ...turn,
+            wordsPlayed: newHistory,
+            secondChanceIndex: nextIndex,
+          }
         }
       });
     }
@@ -189,8 +212,7 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
     const { gameState } = get();
     if (gameState.phase !== GamePhase.REVIEW) return;
 
-    const { turn } = gameState;
-    const newWords = [...turn.wordsPlayed];
+    const newWords = [...gameState.wordsPlayed];
     if (newWords[index]) {
       newWords[index].status = status;
     }
@@ -198,10 +220,7 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
     set({
       gameState: {
         ...gameState,
-        turn: {
-          ...turn,
-          wordsPlayed: newWords
-        }
+        wordsPlayed: newWords
       }
     });
   },
@@ -210,7 +229,6 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
     const {
       gameState,
       teams,
-      currentTeamIndex,
       pointsPerWord,
       usedWords,
       availableWords,
@@ -219,12 +237,12 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
 
     if (gameState.phase !== GamePhase.REVIEW) return;
 
-    const { turn } = gameState;
+    const { wordsPlayed, currentTeamIndex } = gameState;
     let points = 0;
     const wordsToReturnToDeck: DeckItem[] = [];
     const wordsUsed: DeckItem[] = [];
 
-    turn.wordsPlayed.forEach((w) => {
+    wordsPlayed.forEach((w) => {
       const item = w.originalItem || { word: w.word };
       if (w.status === WordStatus.GOT_IT) {
         points += pointsPerWord;
@@ -244,7 +262,10 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
       teams: newTeams,
       availableWords: [...availableWords, ...wordsToReturnToDeck],
       usedWords: [...usedWords, ...wordsUsed],
-      gameState: { phase: GamePhase.SCOREBOARD },
+      gameState: { 
+        phase: GamePhase.SCOREBOARD,
+        currentTeamIndex 
+      },
     });
   },
 });

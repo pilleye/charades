@@ -16,17 +16,15 @@ export const Review: React.FC = () => {
     secondChanceValue,
     secondChanceEnabled,
     teams,
-    currentTeamIndex,
   } = useGameStore();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
+  if (gameState.phase !== GamePhase.REVIEW) return null;
+
+  const { currentTeamIndex, wordsPlayed: currentTurnWords } = gameState;
   const currentTeam = teams[currentTeamIndex];
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
   
-  const isReview = gameState.phase === GamePhase.REVIEW;
-  const turn = isReview ? gameState.turn : null;
-  const currentTurnWords = turn?.wordsPlayed || [];
-
   const handleSelectStatus = (
     index: number,
     status: WordStatus
@@ -92,8 +90,6 @@ export const Review: React.FC = () => {
       return acc + pointsPerWord * secondChanceValue;
     return acc;
   }, 0);
-
-  if (!isReview) return null;
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-50 py-6 safe-screen">

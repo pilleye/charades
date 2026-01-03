@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useGameStore } from '@/store/gameStore';
+import { useGameStore, GamePhase } from '@/store/gameStore';
 import { Button } from './ui/Button';
 import { HomeIcon } from './ui/Icons';
 import { RankBadge } from './ui/Badge';
@@ -12,14 +12,17 @@ import { TEAM_COLORS } from '@/constants';
 export const Scoreboard: React.FC = () => {
   const {
     teams,
+    gameState,
     nextTeam,
     resetGame,
     availableWords,
     currentRound,
     totalRounds,
-    currentTeamIndex,
   } = useGameStore();
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+
+  if (gameState.phase !== GamePhase.SCOREBOARD) return null;
+  const { currentTeamIndex } = gameState;
 
   // Determine Game State logic for UI
   const isRoundComplete = currentTeamIndex === teams.length - 1;

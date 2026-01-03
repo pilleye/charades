@@ -32,21 +32,16 @@ export const ActivePlay: React.FC = () => {
     skipsPerTurn,
     updateSkipsPerTurn,
     teams,
-    currentTeamIndex,
   } = useGameStore();
 
-  const isActiveTurn = gameState.phase === GamePhase.ACTIVE_TURN && gameState.subPhase === TurnSubPhase.PLAYING;
-  const turn = isActiveTurn ? gameState.turn : null;
-  const isPaused = gameState.phase === GamePhase.ACTIVE_TURN ? gameState.isPaused : false;
-
-  const turnTimeRemaining = turn?.timeRemaining ?? 0;
-  const turnSkipsRemaining = turn?.skipsRemaining ?? 0;
-  const currentActiveWord = turn?.activeWord;
-
-  const currentTeam = teams[currentTeamIndex];
-  const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
-
+  const [view, setView] = useState<'PAUSED' | 'SETTINGS'>('PAUSED');
   const { playCorrect, playSkip, playTimeUp, playTick, playUrgentTick } = useGameAudio();
+
+  const isActiveTurn = gameState.phase === GamePhase.ACTIVE_TURN && gameState.turn.subPhase === TurnSubPhase.PLAYING;
+  
+  // Data extraction - using safe access for hook inputs
+  const turnTimeRemaining = isActiveTurn ? gameState.turn.timeRemaining : 0;
+  const isPaused = gameState.phase === GamePhase.ACTIVE_TURN ? gameState.isPaused : false;
 
   const { pause, start } = useTimer({
     initialTime: turnTimeRemaining,
@@ -58,17 +53,9 @@ export const ActivePlay: React.FC = () => {
         if (rem <= 5) {
           playUrgentTick();
         } else {
-          // Audio Logic:
-          // Quiet (0.005) until 10s
-          // Gradually louder (up to 0.05) from 10s to 6s
-          
           let volume = 0.005;
           const freq = 800;
-          
-          if (rem <= 10) {
-            volume = 0.005 + (11 - rem) * 0.01; 
-          }
-          
+          if (rem <= 10) volume = 0.005 + (11 - rem) * 0.01; 
           playTick(freq, volume);
         }
       }
@@ -85,7 +72,13 @@ export const ActivePlay: React.FC = () => {
     else start();
   }, [isPaused, pause, start]);
 
-  const [view, setView] = useState<'PAUSED' | 'SETTINGS'>('PAUSED');
+  if (!isActiveTurn) return null;
+  
+  const { turn, currentTeamIndex } = gameState;
+  const { skipsRemaining: turnSkipsRemaining, activeWord: currentActiveWord } = turn;
+
+  const currentTeam = teams[currentTeamIndex];
+  const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
   
   // Helpers for settings controls
   const toggleInfiniteSkips = () => {

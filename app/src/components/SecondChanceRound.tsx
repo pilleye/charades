@@ -15,16 +15,19 @@ export const SecondChanceRound: React.FC = () => {
     gameState,
     togglePause,
     teams,
-    currentTeamIndex,
     hintsEnabled,
   } = useGameStore();
 
-  const isSecondChance = gameState.phase === GamePhase.ACTIVE_TURN && gameState.subPhase === TurnSubPhase.SECOND_CHANCE;
-  const turn = isSecondChance ? gameState.turn : null;
+  const isSecondChance = gameState.phase === GamePhase.ACTIVE_TURN && gameState.turn.subPhase === TurnSubPhase.SECOND_CHANCE;
   const isPaused = gameState.phase === GamePhase.ACTIVE_TURN ? gameState.isPaused : false;
 
-  const secondChanceQueue = turn?.secondChanceQueue || [];
-  const secondChanceIndex = turn?.secondChanceIndex || 0;
+  // Wake Lock Management
+  useWakeLock(!isPaused);
+
+  if (!isSecondChance) return null;
+  
+  const { turn, currentTeamIndex } = gameState;
+  const { secondChanceQueue, secondChanceIndex } = turn;
 
   const currentTeam = teams[currentTeamIndex];
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
@@ -33,9 +36,6 @@ export const SecondChanceRound: React.FC = () => {
   const displayWord = currentItem?.word || '';
   const displayHint = currentItem?.hint;
   const remaining = secondChanceQueue.length - secondChanceIndex;
-
-  // Wake Lock Management
-  useWakeLock(!isPaused);
 
   const handleRecover = () => {
     if (isPaused) return;
@@ -48,8 +48,6 @@ export const SecondChanceRound: React.FC = () => {
     soundEngine.playSkip().catch(console.error);
     resolveSecondChance(false);
   };
-
-  if (!isSecondChance) return null;
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-indigo-950 text-white">

@@ -19,9 +19,9 @@ export const useGameStore = create<RootState>()(
     }),
     {
       name: 'charades-game-storage',
-      version: 2,
+      version: 3,
       migrate: (persistedState: unknown, version) => {
-        if (version !== 2) {
+        if (version !== 3) {
           return {}; // Return empty object to reset to default state on version mismatch
         }
         return persistedState;
@@ -46,7 +46,6 @@ export const useGameStore = create<RootState>()(
 
         // Game state
         gameState: state.gameState,
-        currentTeamIndex: state.currentTeamIndex,
         currentRound: state.currentRound,
         availableWords: state.availableWords,
         usedWords: state.usedWords,
