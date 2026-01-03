@@ -55,6 +55,9 @@ describe('useTimer', () => {
     
     act(() => {
       result.current.start();
+    });
+
+    act(() => {
       vi.advanceTimersByTime(1000);
     });
     expect(result.current.remaining).toBe(58);

@@ -16,12 +16,33 @@ export function useTimer({
   const [remaining, setRemaining] = useState(initialTime);
   const [isActive, setIsActive] = useState(autoStart);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  
+  // Refs for callbacks
+  const onTickRef = useRef(onTick);
+  const onFinishRef = useRef(onFinish);
+  
+  // Ref for remaining time - Source of Truth for interval
+  const remainingRef = useRef(initialTime);
+
+  useEffect(() => {
+    onTickRef.current = onTick;
+    onFinishRef.current = onFinish;
+  }, [onTick, onFinish]);
 
   const clear = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+  }, []);
+
+  // Wrapper to keep ref in sync if called externally
+  const setRemainingSynced = useCallback((valueOrUpdater: number | ((prev: number) => number)) => {
+    setRemaining((prev) => {
+      const next = typeof valueOrUpdater === 'function' ? valueOrUpdater(prev) : valueOrUpdater;
+      remainingRef.current = next;
+      return next;
+    });
   }, []);
 
   const start = useCallback(() => {
@@ -35,32 +56,42 @@ export function useTimer({
 
   const reset = useCallback((newTime?: number) => {
     clear();
-    setRemaining(newTime ?? initialTime);
+    const t = newTime ?? initialTime;
+    remainingRef.current = t;
+    setRemaining(t);
     setIsActive(false);
   }, [clear, initialTime]);
 
   useEffect(() => {
-    if (isActive && remaining > 0) {
+    if (isActive && remainingRef.current > 0) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      
       timerRef.current = setInterval(() => {
-        setRemaining((prev) => {
-          if (prev <= 1) {
-            clear();
-            setIsActive(false);
-            if (onFinish) onFinish();
-            return 0;
-          }
-          const next = prev - 1;
-          if (onTick) onTick(next);
-          return next;
-        });
+        const current = remainingRef.current;
+        
+        if (current <= 1) {
+          // Finish
+          if (timerRef.current) clearInterval(timerRef.current);
+          timerRef.current = null;
+          
+          remainingRef.current = 0;
+          setIsActive(false);
+          setRemaining(0);
+          if (onFinishRef.current) onFinishRef.current();
+        } else {
+          // Tick
+          const next = current - 1;
+          remainingRef.current = next; // Sync update
+          setRemaining(next);
+          if (onTickRef.current) onTickRef.current(next);
+        }
       }, 1000);
     } else {
       clear();
     }
 
     return () => clear();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive, clear, onFinish, onTick]); // Removed remaining from deps to avoid interval reset on every tick
+  }, [isActive, clear]);
 
   return {
     remaining,
@@ -68,6 +99,6 @@ export function useTimer({
     start,
     pause,
     reset,
-    setRemaining
+    setRemaining: setRemainingSynced
   };
 }
