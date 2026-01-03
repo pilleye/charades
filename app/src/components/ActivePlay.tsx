@@ -41,7 +41,8 @@ export const ActivePlay: React.FC = () => {
   const isActiveTurn = gameState.phase === GamePhase.ACTIVE_TURN && gameState.turn.subPhase === TurnSubPhase.PLAYING;
   
   // Data extraction - using safe access for hook inputs
-  const turnTimeRemaining = isActiveTurn ? gameState.turn.timeRemaining : 0;
+  const turn = gameState.phase === GamePhase.ACTIVE_TURN ? gameState.turn : null;
+  const turnTimeRemaining = (turn && 'timeRemaining' in turn) ? turn.timeRemaining : 0;
   const isPaused = gameState.phase === GamePhase.ACTIVE_TURN ? gameState.isPaused : false;
 
   useWakeLock(!isPaused);
@@ -75,9 +76,9 @@ export const ActivePlay: React.FC = () => {
     else start();
   }, [isPaused, pause, start]);
 
-  if (!isActiveTurn) return null;
+  if (!isActiveTurn || !turn || turn.subPhase !== TurnSubPhase.PLAYING) return null;
   
-  const { turn, currentTeamIndex } = gameState;
+  const { currentTeamIndex } = gameState;
   const { skipsRemaining: turnSkipsRemaining, activeWord: currentActiveWord } = turn;
 
   const currentTeam = teams[currentTeamIndex];

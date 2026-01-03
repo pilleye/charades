@@ -27,6 +27,8 @@ export const SecondChanceRound: React.FC = () => {
   if (!isSecondChance) return null;
   
   const { turn, currentTeamIndex } = gameState;
+  if (turn.subPhase !== TurnSubPhase.SECOND_CHANCE) return null;
+
   const { secondChanceQueue, secondChanceIndex } = turn;
 
   const currentTeam = teams[currentTeamIndex];
