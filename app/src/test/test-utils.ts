@@ -1,47 +1,59 @@
 import * as vitest from 'vitest';
 
-const isBun = typeof process !== 'undefined' && process.versions && process.versions.bun;
+const isBun = typeof process !== 'undefined' && process.versions && !!process.versions.bun;
 
-let viShim: any;
-let describeShim: any;
-let itShim: any;
-let testShim: any;
-let expectShim: any;
-let beforeEachShim: any;
-let afterEachShim: any;
-let afterAllShim: any;
-let beforeAllShim: any;
+interface ViShim {
+  fn: typeof vitest.vi.fn;
+  useFakeTimers: typeof vitest.vi.useFakeTimers;
+  useRealTimers: typeof vitest.vi.useRealTimers;
+  advanceTimersByTime: typeof vitest.vi.advanceTimersByTime;
+  restoreAllMocks: typeof vitest.vi.restoreAllMocks;
+  clearAllMocks: typeof vitest.vi.clearAllMocks;
+  resetModules: typeof vitest.vi.resetModules;
+  stubGlobal: (name: string, value: unknown) => void;
+}
+
+let viShim: ViShim;
+let describeShim: typeof vitest.describe;
+let itShim: typeof vitest.it;
+let testShim: typeof vitest.test;
+let expectShim: typeof vitest.expect;
+let beforeEachShim: typeof vitest.beforeEach;
+let afterEachShim: typeof vitest.afterEach;
+let afterAllShim: typeof vitest.afterAll;
+let beforeAllShim: typeof vitest.beforeAll;
 
 if (isBun) {
-  const g = globalThis as any;
+  const g = globalThis as unknown as Record<string, unknown>;
   
-  // Safe wrapper for Jest globals which might be undefined in some Bun contexts if not preloaded correctly
-  const safeJest = g.jest || {};
+  // Safe wrapper for Jest globals which might be undefined in some Bun contexts
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const safeJest = (g.jest as any) || {};
   
   viShim = {
     fn: safeJest.fn || (() => {}),
-    useFakeTimers: (config?: any) => safeJest.useFakeTimers(config || { legacyFakeTimers: true }) || (() => {}),
+    useFakeTimers: (config?: unknown) => safeJest.useFakeTimers(config || { legacyFakeTimers: true }) || (() => {}),
     useRealTimers: safeJest.useRealTimers || (() => {}),
     advanceTimersByTime: safeJest.advanceTimersByTime || (() => {}),
     restoreAllMocks: safeJest.restoreAllMocks || (() => {}),
     clearAllMocks: safeJest.clearAllMocks || (() => {}),
-    resetModules: safeJest.resetModules || (() => {}), // No-op if missing
-    stubGlobal: (name: string, value: any) => {
-        g[name] = value;
+    resetModules: safeJest.resetModules || (() => {}),
+    stubGlobal: (name: string, value: unknown) => {
+        (g as Record<string, unknown>)[name] = value;
     }
   };
   
-  describeShim = g.describe;
-  itShim = g.it;
-  testShim = g.test;
-  expectShim = g.expect;
-  beforeEachShim = g.beforeEach;
-  afterEachShim = g.afterEach;
-  afterAllShim = g.afterAll;
-  beforeAllShim = g.beforeAll;
+  describeShim = g.describe as typeof vitest.describe;
+  itShim = g.it as typeof vitest.it;
+  testShim = g.test as typeof vitest.test;
+  expectShim = g.expect as typeof vitest.expect;
+  beforeEachShim = g.beforeEach as typeof vitest.beforeEach;
+  afterEachShim = g.afterEach as typeof vitest.afterEach;
+  afterAllShim = g.afterAll as typeof vitest.afterAll;
+  beforeAllShim = g.beforeAll as typeof vitest.beforeAll;
 
 } else {
-  viShim = vitest.vi;
+  viShim = vitest.vi as unknown as ViShim;
   describeShim = vitest.describe;
   itShim = vitest.it;
   testShim = vitest.test;

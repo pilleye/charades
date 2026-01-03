@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from '../test/test-utils';
 import { GamePhase, TurnSubPhase } from './types';
+import type { RootState } from './types';
+import type { UseBoundStore, StoreApi } from 'zustand';
 
 // Define the mock storage outside
 const mockStorage = new Map<string, string>();
@@ -31,7 +33,7 @@ Object.defineProperty(globalThis, 'localStorage', {
 
 describe('GameStore Persistence & Migration', () => {
   const STORAGE_KEY = 'charades-game-storage';
-  let useGameStore: any;
+  let useGameStore: UseBoundStore<StoreApi<RootState>> & { persist: { rehydrate: () => void } };
 
   beforeEach(async () => {
     vi.resetModules();
@@ -39,7 +41,7 @@ describe('GameStore Persistence & Migration', () => {
     
     // Dynamically import the store so it picks up the mocked localStorage
     const mod = await import('./gameStore');
-    useGameStore = mod.useGameStore;
+    useGameStore = mod.useGameStore as typeof useGameStore;
     
     // Reset store to initial state
     useGameStore.setState(useGameStore.getInitialState(), true);
@@ -68,7 +70,7 @@ describe('GameStore Persistence & Migration', () => {
 
     // Assert reset
     expect(state.roundDuration).toBe(60); 
-    expect((state as any).phase).toBeUndefined();
+    expect((state as unknown as { phase: string }).phase).toBeUndefined();
   });
 
   it('should load state when version matches', () => {
