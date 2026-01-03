@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from '../test/test-utils';
 
 // Define the mock storage outside
 const mockStorage = new Map<string, string>();
@@ -20,6 +20,10 @@ const localStorageMock = {
 
 // Force overwrite the global localStorage
 Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+});
+Object.defineProperty(globalThis, 'localStorage', {
   value: localStorageMock,
   writable: true,
 });

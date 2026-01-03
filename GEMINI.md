@@ -1,1 +1,1 @@
-@AGENTS.mda
+@AGENTS.md

@@ -1,4 +1,4 @@
-import { expect, test, describe } from "vitest";
+import { expect, test, describe } from "../test/test-utils";
 import { toggleInfinite, adjustInfiniteValue } from "./infiniteToggle";
 
 describe("infiniteToggle", () => {
