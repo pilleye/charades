@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { soundEngine } from '@/lib/audio';
-import { wakeLockManager } from '@/lib/wakeLock';
+import { useWakeLock } from '@/hooks/useWakeLock';
 import { TEAM_COLORS } from '@/constants';
-import { Button } from './ui/Button';
+import { PauseMenuOverlay } from './ui/PauseMenuOverlay';
 
 // Icons
 const PauseIcon = () => (
@@ -36,21 +36,11 @@ export const Countdown: React.FC = () => {
     resetGame,
   } = useGameStore();
 
-  const [showQuitConfirm, setShowQuitConfirm] = useState(false);
   const currentTeam = teams[currentTeamIndex];
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
 
   // Wake Lock Management
-  useEffect(() => {
-    if (isPaused) {
-      wakeLockManager.disable();
-    } else {
-      wakeLockManager.enable();
-    }
-    return () => {
-      wakeLockManager.disable();
-    };
-  }, [isPaused]);
+  useWakeLock(!isPaused);
 
   // Timer Logic
   useEffect(() => {
@@ -116,68 +106,12 @@ export const Countdown: React.FC = () => {
       </div>
 
       {/* PAUSE MENU OVERLAY */}
-      {isPaused && (
-        <div className="animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center space-y-8 bg-slate-50/95 p-6 backdrop-blur-sm safe-overlay">
-          {!showQuitConfirm ? (
-            <>
-              <h2 className="text-4xl font-black text-slate-900">
-                GAME PAUSED
-              </h2>
-
-              <div className="w-full max-w-sm space-y-6">
-                <Button
-                  variant="primary"
-                  size="xl"
-                  fullWidth
-                  onClick={togglePause}
-                >
-                  RESUME
-                </Button>
-
-                <div className="pt-4">
-                  <Button
-                    variant="ghost"
-                    size="lg"
-                    fullWidth
-                    onClick={() => setShowQuitConfirm(true)}
-                    className="bg-red-50 text-red-500 hover:bg-red-100"
-                  >
-                    QUIT GAME
-                  </Button>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <h2 className="text-center text-3xl font-black text-slate-900">
-                EXIT TO MENU?
-              </h2>
-              <p className="-mt-4 text-center font-bold text-slate-500">
-                Current game progress will be lost.
-              </p>
-
-              <div className="w-full max-w-sm space-y-4">
-                <Button
-                  variant="danger"
-                  size="xl"
-                  fullWidth
-                  onClick={resetGame}
-                >
-                  YES, EXIT GAME
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  fullWidth
-                  onClick={() => setShowQuitConfirm(false)}
-                >
-                  CANCEL
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-      )}
+      <PauseMenuOverlay
+        isOpen={isPaused}
+        onResume={togglePause}
+        onQuit={resetGame}
+        variant="light"
+      />
     </div>
   );
 };

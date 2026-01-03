@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { soundEngine } from '@/lib/audio';
-import { wakeLockManager } from '@/lib/wakeLock';
-import { Button } from './ui/Button';
+import { useWakeLock } from '@/hooks/useWakeLock';
 import { TEAM_COLORS } from '@/constants';
 import { SkipIcon, RecoverIcon, PauseIcon } from './ui/Icons';
 import { getWordFontSize } from '@/lib/typography';
+import { PauseMenuOverlay } from './ui/PauseMenuOverlay';
 
 export const SecondChanceRound: React.FC = () => {
   const {
@@ -20,7 +20,6 @@ export const SecondChanceRound: React.FC = () => {
   } = useGameStore();
 
   const [isPaused, setIsPaused] = useState(false);
-  const [showQuitConfirm, setShowQuitConfirm] = useState(false);
 
   const currentTeam = teams[currentTeamIndex];
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
@@ -28,19 +27,8 @@ export const SecondChanceRound: React.FC = () => {
   const currentWord = secondChanceQueue[secondChanceIndex];
   const remaining = secondChanceQueue.length - secondChanceIndex;
 
-  useEffect(() => {
-    // Enable wake lock reactively based on pause state
-    if (isPaused) {
-      wakeLockManager.disable();
-    } else {
-      wakeLockManager.enable();
-    }
-
-    // Cleanup on unmount
-    return () => {
-      wakeLockManager.disable();
-    };
-  }, [isPaused]);
+  // Wake Lock Management
+  useWakeLock(!isPaused);
 
   const handleRecover = () => {
     if (isPaused) return;
@@ -56,7 +44,6 @@ export const SecondChanceRound: React.FC = () => {
 
   const togglePause = () => {
     setIsPaused(!isPaused);
-    if (isPaused) setShowQuitConfirm(false); // Reset on close
   };
 
   return (
@@ -145,69 +132,13 @@ export const SecondChanceRound: React.FC = () => {
       </div>
 
       {/* PAUSE MENU OVERLAY */}
-      {isPaused && (
-        <div className="animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center space-y-8 bg-indigo-950/95 p-6 text-white backdrop-blur-sm safe-overlay">
-          {!showQuitConfirm ? (
-            <>
-              <h2 className="text-4xl font-black text-white">PAUSED</h2>
-
-              <div className="w-full max-w-sm space-y-6">
-                <Button
-                  variant="primary"
-                  size="xl"
-                  fullWidth
-                  onClick={togglePause}
-                  className="border-blue-900 bg-blue-600 shadow-blue-900"
-                >
-                  RESUME
-                </Button>
-
-                <div className="pt-4">
-                  <Button
-                    variant="ghost"
-                    size="lg"
-                    fullWidth
-                    onClick={() => setShowQuitConfirm(true)}
-                    className="bg-red-900/20 text-red-400 hover:bg-red-900/40 hover:text-red-300"
-                  >
-                    QUIT GAME
-                  </Button>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <h2 className="text-center text-3xl font-black text-white">
-                EXIT TO MENU?
-              </h2>
-              <p className="-mt-4 text-center font-bold text-indigo-200">
-                Current game progress will be lost.
-              </p>
-
-              <div className="w-full max-w-sm space-y-4">
-                <Button
-                  variant="danger"
-                  size="xl"
-                  fullWidth
-                  onClick={resetGame}
-                  className="border-red-900 shadow-red-900"
-                >
-                  YES, EXIT GAME
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  fullWidth
-                  onClick={() => setShowQuitConfirm(false)}
-                  className="!bg-slate-700 !text-white !shadow-[0_4px_0_0_rgba(15,23,42,1)] hover:!bg-slate-600"
-                >
-                  CANCEL
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-      )}
+      <PauseMenuOverlay
+        isOpen={isPaused}
+        onResume={togglePause}
+        onQuit={resetGame}
+        variant="dark"
+        pauseTitle="PAUSED"
+      />
     </div>
   );
 };

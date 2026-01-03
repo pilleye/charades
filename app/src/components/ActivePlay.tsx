@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { soundEngine } from '@/lib/audio';
-import { wakeLockManager } from '@/lib/wakeLock';
+import { useWakeLock } from '@/hooks/useWakeLock';
 import { getWordFontSize } from '@/lib/typography';
+import { toggleInfinite } from '@/lib/infiniteToggle';
 import { Button } from './ui/Button';
 import { SkipIcon, CheckIcon, PauseIcon, CogIcon, BackIcon } from './ui/Icons';
 import { HintDisplay } from './ui/HintDisplay';
@@ -46,36 +47,16 @@ export const ActivePlay: React.FC = () => {
 
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
 
-  useEffect(() => {
-    // Enable wake lock reactively based on pause state
-    if (isPaused) {
-      wakeLockManager.disable();
-    } else {
-      wakeLockManager.enable();
-    }
-
-    // Cleanup on unmount
-    return () => {
-      wakeLockManager.disable();
-    };
-  }, [isPaused]);
+  // Wake Lock Management
+  useWakeLock(!isPaused);
 
 
   const toggleInfiniteRounds = () => {
-    if (totalRounds === 'Infinite') {
-      // Restore last value, ensuring it's at least the current round
-      updateTotalRounds(Math.max(currentRound, lastRoundsValue));
-    } else {
-      updateTotalRounds('Infinite');
-    }
+    updateTotalRounds(toggleInfinite(totalRounds, lastRoundsValue, currentRound));
   };
 
   const toggleInfiniteSkips = () => {
-    if (skipsPerTurn === 'Infinite') {
-      updateSkipsPerTurn(lastSkipsValue);
-    } else {
-      updateSkipsPerTurn('Infinite');
-    }
+    updateSkipsPerTurn(toggleInfinite(skipsPerTurn, lastSkipsValue));
   };
 
   useEffect(() => {
@@ -155,10 +136,10 @@ export const ActivePlay: React.FC = () => {
       <div className="relative z-30 h-6 w-full shrink-0 border-b border-slate-300 bg-slate-200">
         <div
           className={`h-full transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${isCritical
-              ? 'bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.6)]'
-              : isWarning
-                ? 'bg-orange-500'
-                : 'bg-blue-500'
+            ? 'bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.6)]'
+            : isWarning
+              ? 'bg-orange-500'
+              : 'bg-blue-500'
             }`}
           style={{ width: `${progressPercent}%` }}
         />
@@ -203,18 +184,18 @@ export const ActivePlay: React.FC = () => {
 
               <div
                 className={`flex flex-col items-center transition-all duration-300 ${isCritical
-                    ? 'translate-y-2 scale-125'
-                    : isWarning
-                      ? 'translate-y-1 scale-110'
-                      : ''
+                  ? 'translate-y-2 scale-125'
+                  : isWarning
+                    ? 'translate-y-1 scale-110'
+                    : ''
                   }`}
               >
                 <span
                   className={`font-mono leading-none font-black transition-colors duration-300 ${isCritical
-                      ? 'animate-pulse text-8xl text-red-600 drop-shadow-sm'
-                      : isWarning
-                        ? 'text-7xl text-orange-500'
-                        : 'text-6xl text-slate-900'
+                    ? 'animate-pulse text-8xl text-red-600 drop-shadow-sm'
+                    : isWarning
+                      ? 'text-7xl text-orange-500'
+                      : 'text-6xl text-slate-900'
                     }`}
                 >
                   {turnTimeRemaining}
