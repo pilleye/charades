@@ -1,21 +1,31 @@
 import type { GameSliceCreator, GameSlice } from '../types';
 
 export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
-  phase: 'SETUP',
+  gameState: { phase: 'SETUP' },
   currentRound: 1,
   isGameOver: false,
-  isPaused: false,
 
-  togglePause: () => set((state) => ({ isPaused: !state.isPaused })),
+  togglePause: () => set((state) => {
+    const { gameState } = state;
+    if (
+      gameState.phase === 'COUNTDOWN' ||
+      gameState.phase === 'ACTIVE' ||
+      gameState.phase === 'SECOND_CHANCE'
+    ) {
+      return {
+        gameState: { ...gameState, isPaused: !gameState.isPaused }
+      };
+    }
+    return {};
+  }),
 
   startGame: () => {
     get().initializeDeck();
     set({
-      phase: 'READY_CHECK',
+      gameState: { phase: 'READY_CHECK' },
       currentTeamIndex: 0,
       currentRound: 1,
       isGameOver: false,
-      isPaused: false,
     });
   },
 
@@ -28,21 +38,20 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
 
     if (nextIndex === 0) {
       nextRound = currentRound + 1;
-      if (totalRounds !== 'Infinite' && nextRound > totalRounds) {
+      if (totalRounds !== 'unlimited' && nextRound > totalRounds) {
         isGameOver = true;
       }
     }
 
     if (isGameOver) {
-      set({ phase: 'SETUP', isGameOver: true });
+      set({ gameState: { phase: 'SETUP' }, isGameOver: true });
       return;
     }
 
     set({
-      phase: 'READY_CHECK',
+      gameState: { phase: 'READY_CHECK' },
       currentTeamIndex: nextIndex,
       currentRound: nextRound,
-      isPaused: false,
     });
   },
 
@@ -51,12 +60,11 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
     const resetTeams = teams.map((t) => ({ ...t, score: 0 }));
     get().initializeDeck();
     set({
-      phase: 'SETUP',
+      gameState: { phase: 'SETUP' },
       teams: resetTeams,
       currentRound: 1,
       turn: null, // Ensure strict cleanup
       isGameOver: false,
-      isPaused: false,
     });
   },
 });

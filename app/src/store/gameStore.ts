@@ -18,9 +18,20 @@ export const useGameStore = create<RootState>()(
     }),
     {
       name: 'charades-game-storage',
+      version: 2,
+      migrate: (persistedState: any, version) => {
+        if (version !== 2) {
+          return {}; // Return empty object to reset to default state on version mismatch
+        }
+        return persistedState;
+      },
       onRehydrateStorage: () => (state) => {
-        if (state && (state.phase === 'ACTIVE' || state.phase === 'COUNTDOWN')) {
-          state.isPaused = true;
+        if (state && (
+          state.gameState.phase === 'ACTIVE' || 
+          state.gameState.phase === 'COUNTDOWN' ||
+          state.gameState.phase === 'SECOND_CHANCE'
+        )) {
+          state.gameState.isPaused = true;
         }
       },
       partialize: (state) => ({
@@ -37,7 +48,7 @@ export const useGameStore = create<RootState>()(
         hintsEnabled: state.hintsEnabled,
 
         // Game state
-        phase: state.phase,
+        gameState: state.gameState,
         currentTeamIndex: state.currentTeamIndex,
         currentRound: state.currentRound,
         isGameOver: state.isGameOver,
@@ -51,4 +62,4 @@ export const useGameStore = create<RootState>()(
   )
 );
 
-export type { Team, WordResult, GamePhase } from './types';
+export type { Team, WordResult } from './types';

@@ -12,7 +12,7 @@ export const ReadyCheck: React.FC = () => {
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
 
   const roundLabel =
-    totalRounds === 'Infinite'
+    totalRounds === 'unlimited'
       ? `ROUND ${currentRound}`
       : `ROUND ${currentRound} / ${totalRounds}`;
 

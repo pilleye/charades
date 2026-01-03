@@ -3,22 +3,22 @@ import { toggleInfinite, adjustInfiniteValue } from "./infiniteToggle";
 
 describe("infiniteToggle", () => {
   describe("toggleInfinite", () => {
-    test("should toggle from finite to 'Infinite'", () => {
-      expect(toggleInfinite(5, 5)).toBe("Infinite");
+    test("should toggle from finite to 'unlimited'", () => {
+      expect(toggleInfinite(5, 5)).toBe("unlimited");
     });
 
-    test("should toggle from 'Infinite' to last finite value", () => {
-      expect(toggleInfinite("Infinite", 10)).toBe(10);
+    test("should toggle from 'unlimited' to last finite value", () => {
+      expect(toggleInfinite("unlimited", 10)).toBe(10);
     });
 
-    test("should respect minValue when toggling off 'Infinite'", () => {
-      expect(toggleInfinite("Infinite", 5, 10)).toBe(10);
+    test("should respect minValue when toggling off 'unlimited'", () => {
+      expect(toggleInfinite("unlimited", 5, 10)).toBe(10);
     });
   });
 
   describe("adjustInfiniteValue", () => {
-    test("should return null when adjusting 'Infinite'", () => {
-      expect(adjustInfiniteValue("Infinite", 1)).toBeNull();
+    test("should return null when adjusting 'unlimited'", () => {
+      expect(adjustInfiniteValue("unlimited", 1)).toBeNull();
     });
 
     test("should adjust finite value by delta", () => {

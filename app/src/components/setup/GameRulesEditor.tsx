@@ -1,14 +1,15 @@
 import React from 'react';
 import { NumberControl, InfiniteToggleControl } from '../ui/Controls';
 import { SegmentedControl } from '../ui/SegmentedControl';
+import type { GameLimit } from '@/store/types';
 
 interface GameRulesEditorProps {
   duration: number;
   onDurationChange: (v: number) => void;
-  skips: number | 'Infinite';
-  onSkipsChange: (v: number | 'Infinite') => void;
-  rounds: number | 'Infinite';
-  onRoundsChange: (v: number | 'Infinite') => void;
+  skips: GameLimit;
+  onSkipsChange: (v: GameLimit) => void;
+  rounds: GameLimit;
+  onRoundsChange: (v: GameLimit) => void;
   secondChance: boolean;
   onSecondChanceChange: (v: boolean) => void;
   secondChancePoints: number;
@@ -40,7 +41,7 @@ export const GameRulesEditor: React.FC<GameRulesEditorProps> = ({
         value={skips}
         onDecrease={() => typeof skips === 'number' && onSkipsChange(Math.max(0, skips - 1))}
         onIncrease={() => typeof skips === 'number' && onSkipsChange(Math.min(10, skips + 1))}
-        onToggleInfinite={() => onSkipsChange(skips === 'Infinite' ? 3 : 'Infinite')}
+        onToggleInfinite={() => onSkipsChange(skips === 'unlimited' ? 3 : 'unlimited')}
         unit="PER TURN"
         color="yellow"
         lastFiniteValue={3}
@@ -51,7 +52,7 @@ export const GameRulesEditor: React.FC<GameRulesEditorProps> = ({
         value={rounds}
         onDecrease={() => typeof rounds === 'number' && onRoundsChange(Math.max(1, rounds - 1))}
         onIncrease={() => typeof rounds === 'number' && onRoundsChange(Math.min(20, rounds + 1))}
-        onToggleInfinite={() => onRoundsChange(rounds === 'Infinite' ? 5 : 'Infinite')}
+        onToggleInfinite={() => onRoundsChange(rounds === 'unlimited' ? 5 : 'unlimited')}
         unit="ROUNDS"
         color="indigo"
         lastFiniteValue={5}

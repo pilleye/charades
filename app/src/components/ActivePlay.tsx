@@ -19,7 +19,7 @@ export const ActivePlay: React.FC = () => {
     turn,
     markWord,
     endTurn,
-    isPaused,
+    gameState,
     togglePause,
     roundDuration,
     updateDurationInGame,
@@ -34,6 +34,8 @@ export const ActivePlay: React.FC = () => {
     teams,
     currentTeamIndex,
   } = useGameStore();
+
+  const isPaused = gameState.phase === 'ACTIVE' ? gameState.isPaused : false;
 
   const turnTimeRemaining = turn?.timeRemaining ?? 0;
   const turnSkipsRemaining = turn?.skipsRemaining ?? 0;
@@ -70,10 +72,10 @@ export const ActivePlay: React.FC = () => {
   
   // Helpers for settings controls
   const toggleInfiniteSkips = () => {
-    updateSkipsPerTurn(skipsPerTurn === 'Infinite' ? 3 : 'Infinite');
+    updateSkipsPerTurn(skipsPerTurn === 'unlimited' ? 3 : 'unlimited');
   };
   const toggleInfiniteRounds = () => {
-    updateTotalRounds(totalRounds === 'Infinite' ? 5 : 'Infinite');
+    updateTotalRounds(totalRounds === 'unlimited' ? 5 : 'unlimited');
   };
 
   const lastSkipsValue = typeof skipsPerTurn === 'number' ? skipsPerTurn : 3;
@@ -149,7 +151,7 @@ export const ActivePlay: React.FC = () => {
               </span>
 
               <div className="mt-1 text-3xl leading-none font-black text-yellow-500">
-                {turnSkipsRemaining === 'Infinite' ? '∞' : turnSkipsRemaining}
+                {turnSkipsRemaining === 'unlimited' ? '∞' : turnSkipsRemaining}
               </div>
             </div>
 

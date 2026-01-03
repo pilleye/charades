@@ -25,7 +25,7 @@ export const Scoreboard: React.FC = () => {
   const isRoundComplete = currentTeamIndex === teams.length - 1;
   const isGameComplete =
     isRoundComplete &&
-    totalRounds !== 'Infinite' &&
+    totalRounds !== 'unlimited' &&
     currentRound >= totalRounds;
 
   const isDarkMode = isRoundComplete || isGameComplete;

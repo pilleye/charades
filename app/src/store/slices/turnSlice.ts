@@ -7,8 +7,7 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
   startTurn: () => {
     const { roundDuration, skipsPerTurn } = get();
     set({
-      phase: 'COUNTDOWN',
-      isPaused: false,
+      gameState: { phase: 'COUNTDOWN', isPaused: false },
       turn: {
         timeRemaining: roundDuration,
         skipsRemaining: skipsPerTurn,
@@ -23,7 +22,7 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
   beginActiveRound: () => {
     const nextCard = get().drawNextCard();
     set((state) => ({
-      phase: 'ACTIVE',
+      gameState: { phase: 'ACTIVE', isPaused: false },
       turn: state.turn ? { ...state.turn, activeWord: nextCard } : null
     }));
   },
@@ -47,12 +46,9 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
       .filter((w) => w.status === 'SKIPPED')
       .map((w) => w.word);
 
-    // Update phase and ensure the turn state reflects the end of active play
-    // We keep the turn object alive because Review/SecondChance needs the history
     if (secondChanceEnabled && candidates.length > 0) {
       set({
-        phase: 'SECOND_CHANCE',
-        isPaused: false,
+        gameState: { phase: 'SECOND_CHANCE', isPaused: false },
         turn: {
           ...turn,
           activeWord: null,
@@ -63,8 +59,7 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
       });
     } else {
       set({
-        phase: 'REVIEW',
-        isPaused: false,
+        gameState: { phase: 'REVIEW' },
         turn: {
           ...turn,
           activeWord: null,
@@ -77,7 +72,6 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
   markWord: (status) => {
     const { turn } = get();
     if (!turn || !turn.activeWord) {
-      // If we don't have a word, try to draw one (first draw of the game)
       const nextCard = get().drawNextCard();
       if (turn) {
           set({
@@ -102,7 +96,7 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
     ];
 
     let newSkips = skipsRemaining;
-    if (status === 'SKIPPED' && skipsRemaining !== 'Infinite') {
+    if (status === 'SKIPPED' && skipsRemaining !== 'unlimited') {
       newSkips = Math.max(0, skipsRemaining - 1);
     }
 
@@ -142,7 +136,7 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
 
     if (nextIndex >= secondChanceQueue.length) {
       set({ 
-        phase: 'REVIEW',
+        gameState: { phase: 'REVIEW' },
         turn: { ...turn, ...updates }
       });
     } else {
@@ -201,20 +195,13 @@ export const createTurnSlice: GameSliceCreator<TurnSlice> = (set, get) => ({
 
     const newTeams = [...teams];
     newTeams[currentTeamIndex].score += points;
-
-    // Importing shuffleArray here would be circular if we aren't careful, 
-    // but deckSlice exports it. However, we have availableWords in state.
-    // We should use the deckSlice logic? 
-    // Actually, simple array spread is fine, deckSlice handles the shuffle on draw usually.
-    // But we want to return words to the deck randomly? 
-    // For now, just append. The deck logic shuffles when the deck is empty.
     
     set({
       teams: newTeams,
       availableWords: [...availableWords, ...wordsToReturnToDeck],
       usedWords: [...usedWords, ...wordsUsed],
-      phase: 'SCOREBOARD',
-      turn: null, // Clean up the turn object
+      gameState: { phase: 'SCOREBOARD' },
+      turn: null,
     });
   },
 });

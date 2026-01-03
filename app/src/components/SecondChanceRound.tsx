@@ -14,14 +14,16 @@ export const SecondChanceRound: React.FC = () => {
     turn,
     resolveSecondChance,
     resetGame,
+    gameState,
+    togglePause,
     teams,
     currentTeamIndex,
   } = useGameStore();
 
+  const isPaused = gameState.phase === 'SECOND_CHANCE' ? gameState.isPaused : false;
+
   const secondChanceQueue = turn?.secondChanceQueue || [];
   const secondChanceIndex = turn?.secondChanceIndex || 0;
-
-  const [isPaused, setIsPaused] = useState(false);
 
   const currentTeam = teams[currentTeamIndex];
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
@@ -42,10 +44,6 @@ export const SecondChanceRound: React.FC = () => {
     if (isPaused) return;
     soundEngine.playSkip().catch(console.error);
     resolveSecondChance(false);
-  };
-
-  const togglePause = () => {
-    setIsPaused(!isPaused);
   };
 
   return (

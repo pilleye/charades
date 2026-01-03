@@ -13,7 +13,8 @@ import { Scoreboard } from './Scoreboard';
 import { SecondChanceRound } from './SecondChanceRound';
 
 export const CharadesApp: React.FC = () => {
-  const phase = useGameStore((state) => state.phase);
+  const gameState = useGameStore((state) => state.gameState);
+  const { phase } = gameState;
 
   useEffect(() => {
     const handleResume = async () => {
@@ -26,30 +27,33 @@ export const CharadesApp: React.FC = () => {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // Delay slightly to ensure the page is fully active
         setTimeout(handleResume, 100);
       } else {
-        // Auto-pause on tab switch/minimize
-        const currentPhase = useGameStore.getState().phase;
-        const currentPaused = useGameStore.getState().isPaused;
+        const { gameState: currentGameState } = useGameStore.getState();
         if (
-          (currentPhase === 'ACTIVE' || currentPhase === 'COUNTDOWN') &&
-          !currentPaused
+          (currentGameState.phase === 'ACTIVE' || 
+           currentGameState.phase === 'COUNTDOWN' || 
+           currentGameState.phase === 'SECOND_CHANCE') &&
+          !currentGameState.isPaused
         ) {
-          useGameStore.setState({ isPaused: true });
+          useGameStore.setState({ 
+            gameState: { ...currentGameState, isPaused: true } 
+          });
         }
       }
     };
 
     const handleBlur = () => {
-      // Auto-pause when window loses focus (background throttling protection)
-      const currentPhase = useGameStore.getState().phase;
-      const currentPaused = useGameStore.getState().isPaused;
+      const { gameState: currentGameState } = useGameStore.getState();
       if (
-        (currentPhase === 'ACTIVE' || currentPhase === 'COUNTDOWN') &&
-        !currentPaused
+        (currentGameState.phase === 'ACTIVE' || 
+         currentGameState.phase === 'COUNTDOWN' || 
+         currentGameState.phase === 'SECOND_CHANCE') &&
+        !currentGameState.isPaused
       ) {
-        useGameStore.setState({ isPaused: true });
+        useGameStore.setState({ 
+          gameState: { ...currentGameState, isPaused: true } 
+        });
       }
     };
 

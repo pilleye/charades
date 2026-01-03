@@ -28,12 +28,14 @@ const PauseIcon = () => (
 export const Countdown: React.FC = () => {
   const {
     beginActiveRound,
-    isPaused,
+    gameState,
     togglePause,
     resetGame,
     teams,
     currentTeamIndex,
   } = useGameStore();
+
+  const isPaused = gameState.phase === 'COUNTDOWN' ? gameState.isPaused : false;
 
   const currentTeam = teams[currentTeamIndex];
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];

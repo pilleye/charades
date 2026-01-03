@@ -1,14 +1,16 @@
 import type { StateCreator } from 'zustand';
 import type { DeckItem } from '@/data/decks/types';
 
-export type GamePhase =
-  | 'SETUP'
-  | 'READY_CHECK'
-  | 'COUNTDOWN'
-  | 'ACTIVE'
-  | 'SECOND_CHANCE'
-  | 'REVIEW'
-  | 'SCOREBOARD';
+export type GameLimit = number | 'unlimited';
+
+export type GameState =
+  | { phase: 'SETUP' }
+  | { phase: 'READY_CHECK' }
+  | { phase: 'COUNTDOWN'; isPaused: boolean }
+  | { phase: 'ACTIVE'; isPaused: boolean }
+  | { phase: 'SECOND_CHANCE'; isPaused: boolean }
+  | { phase: 'REVIEW' }
+  | { phase: 'SCOREBOARD' };
 
 export interface Team {
   id: number;
@@ -25,17 +27,17 @@ export interface WordResult {
 
 export interface SettingsSlice {
   roundDuration: number;
-  skipsPerTurn: number | 'Infinite';
+  skipsPerTurn: GameLimit;
   pointsPerWord: number;
-  totalRounds: number | 'Infinite';
+  totalRounds: GameLimit;
   secondChanceEnabled: boolean;
   secondChanceValue: number;
   hintsEnabled: boolean;
   setSettings: (settings: Partial<Omit<SettingsSlice, 'setSettings' | 'updateDurationInGame'>>) => void;
   updateDurationInGame: (duration: number) => void;
   setHintsEnabled: (enabled: boolean) => void;
-  updateTotalRounds: (rounds: number | 'Infinite') => void;
-  updateSkipsPerTurn: (skips: number | 'Infinite') => void;
+  updateTotalRounds: (rounds: GameLimit) => void;
+  updateSkipsPerTurn: (skips: GameLimit) => void;
 }
 
 export interface TeamSlice {
@@ -60,7 +62,7 @@ export interface DeckSlice {
 
 export interface ActiveTurn {
   timeRemaining: number;
-  skipsRemaining: number | 'Infinite';
+  skipsRemaining: GameLimit;
   activeWord: DeckItem | null;
   wordsPlayed: WordResult[];
   secondChanceQueue: string[];
@@ -68,10 +70,9 @@ export interface ActiveTurn {
 }
 
 export interface GameSlice {
-  phase: GamePhase;
+  gameState: GameState;
   currentRound: number;
   isGameOver: boolean;
-  isPaused: boolean;
   togglePause: () => void;
   startGame: () => void;
   nextTeam: () => void;

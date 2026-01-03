@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from './Button';
+import type { GameLimit } from '@/store/types';
 
 interface NumberControlProps {
   label: string;
@@ -59,7 +60,7 @@ export const NumberControl: React.FC<NumberControlProps> = ({
 
 interface InfiniteToggleControlProps {
   label: string;
-  value: number | 'Infinite';
+  value: GameLimit;
   onDecrease: () => void;
   onIncrease: () => void;
   onToggleInfinite: () => void;
@@ -95,7 +96,7 @@ export const InfiniteToggleControl: React.FC<InfiniteToggleControlProps> = ({
     },
   };
 
-  const isInfinite = value === 'Infinite';
+  const isInfinite = value === 'unlimited';
   const displayValue = isInfinite ? lastFiniteValue : value;
 
   return (
