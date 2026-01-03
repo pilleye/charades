@@ -14,6 +14,7 @@ import { TEAM_COLORS } from '@/constants';
 import { DEFAULT_DECKS, FREE_TIER_CARD_LIMIT } from '@/data/decks';
 import { useSubscriptionStore, useIsPremium } from '@/store/subscriptionStore';
 import { Paywall } from './Paywall';
+import { useDragReorder } from '@/hooks/useDragReorder';
 
 export const Setup: React.FC = () => {
   const {
@@ -83,18 +84,17 @@ export const Setup: React.FC = () => {
   const [colorPickerTeamId, setColorPickerTeamId] = useState<number | null>(
     null
   );
-  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
-  const [touchState, setTouchState] = useState<{
-    index: number | null;
-    startY: number;
-    currentY: number;
-    elementRect?: DOMRect;
-  }>({ index: null, startY: 0, currentY: 0 });
-  const [previewOrder, setPreviewOrder] = useState<number[]>([]);
+
+  // Team reordering via drag and drop
+  const { getItemProps } = useDragReorder({
+    items: localTeams,
+    onReorder: setLocalTeams,
+    itemHeight: 60,
+  });
 
   // Sync localTeams array with teamCount using ref to track previous count
   const prevTeamCountRef = React.useRef(teamCount);
-  
+
   React.useLayoutEffect(() => {
     if (prevTeamCountRef.current !== teamCount) {
       if (teamCount > localTeams.length) {
@@ -213,136 +213,6 @@ export const Setup: React.FC = () => {
       addCustomWord(newWordInput);
       setNewWordInput('');
     }
-  };
-
-  // Drag Handlers (Desktop)
-  const onDragStart = (e: React.DragEvent, index: number) => {
-    setDraggingIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const onDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (draggingIndex === null || draggingIndex === index) return;
-
-    reorderTeams(draggingIndex, index);
-    setDraggingIndex(index);
-  };
-
-  const onDragEnd = () => {
-    setDraggingIndex(null);
-  };
-
-  // Touch Handlers (Mobile)
-  const onTouchStart = (e: React.TouchEvent, index: number) => {
-    // Only start dragging from drag handle area
-    const target = e.target as HTMLElement;
-    if (!target.closest('.drag-handle')) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const touch = e.touches[0];
-    const element = target.closest('[data-team-item]') as HTMLElement;
-    const rect = element?.getBoundingClientRect();
-
-    setTouchState({
-      index,
-      startY: touch.clientY,
-      currentY: touch.clientY,
-      elementRect: rect,
-    });
-    setDraggingIndex(index);
-    setPreviewOrder([...Array(localTeams.length).keys()]); // Initialize with current order
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (touchState.index === null) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const touch = e.touches[0];
-    const deltaY = touch.clientY - touchState.startY;
-    const itemHeight = 60;
-
-    // Calculate which position the dragged item should be in
-    const positionShift = Math.round(deltaY / itemHeight);
-    const newPosition = Math.max(
-      0,
-      Math.min(localTeams.length - 1, touchState.index + positionShift)
-    );
-
-    // Create preview order for visual feedback
-    const preview = [...Array(localTeams.length).keys()];
-    if (newPosition !== touchState.index) {
-      // Remove dragged item from its original position
-      preview.splice(touchState.index, 1);
-      // Insert it at the new position
-      preview.splice(newPosition, 0, touchState.index);
-    }
-    setPreviewOrder(preview);
-
-    setTouchState((prev) => ({
-      ...prev,
-      currentY: touch.clientY,
-    }));
-  };
-
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchState.index === null) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const deltaY = touchState.currentY - touchState.startY;
-    const itemHeight = 60; // Approximate height of each team item
-    const moveThreshold = itemHeight * 0.5; // 50% of item height to trigger move
-
-    if (Math.abs(deltaY) > moveThreshold) {
-      const direction = deltaY > 0 ? 1 : -1;
-      const newIndex = Math.max(
-        0,
-        Math.min(localTeams.length - 1, touchState.index + direction)
-      );
-      if (newIndex !== touchState.index) {
-        reorderTeams(touchState.index, newIndex);
-      }
-    }
-
-    setTouchState({ index: null, startY: 0, currentY: 0 });
-    setDraggingIndex(null);
-    setPreviewOrder([]);
-  };
-
-  // Common reorder function
-  const reorderTeams = (fromIndex: number, toIndex: number) => {
-    const newTeams = [...localTeams];
-    const draggedItem = newTeams[fromIndex];
-    newTeams.splice(fromIndex, 1);
-    newTeams.splice(toIndex, 0, draggedItem);
-    setLocalTeams(newTeams);
-  };
-
-  // Calculate transform for each item during drag preview
-  const getItemTransform = (currentIndex: number) => {
-    if (touchState.index === null || previewOrder.length === 0) {
-      return touchState.index === currentIndex
-        ? `translateY(${touchState.currentY - touchState.startY}px)`
-        : undefined;
-    }
-
-    if (touchState.index === currentIndex) {
-      // Dragged item follows finger
-      return `translateY(${touchState.currentY - touchState.startY}px)`;
-    }
-
-    // Calculate where this item should be in the preview order
-    const previewIndex = previewOrder.indexOf(currentIndex);
-    const originalIndex = currentIndex;
-    const offset = (previewIndex - originalIndex) * 60; // 60px per item height
-
-    return offset !== 0 ? `translateY(${offset}px)` : undefined;
   };
 
   if (view === 'SETTINGS') {
@@ -482,7 +352,7 @@ export const Setup: React.FC = () => {
                 {Object.keys(DEFAULT_DECKS).map((deckName) => {
                   const isLocked = !isPremium && deckName !== 'Default';
                   const count = DEFAULT_DECKS[deckName]?.length || 0;
-                  const displayCount = (deckName === 'Default' && !isPremium) 
+                  const displayCount = (deckName === 'Default' && !isPremium)
                     ? `${FREE_TIER_CARD_LIMIT} / ${count}`
                     : count;
 
@@ -497,13 +367,12 @@ export const Setup: React.FC = () => {
                           setLocalDeck(deckName);
                         }
                       }}
-                      className={`relative h-16 rounded-2xl text-sm font-black tracking-wide uppercase transition-all active:scale-95 ${
-                        localDeck === deckName
-                          ? 'bg-blue-500 text-white shadow-md'
-                          : isLocked
-                            ? 'bg-slate-100 text-slate-400 opacity-80'
-                            : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                      } `}
+                      className={`relative h-16 rounded-2xl text-sm font-black tracking-wide uppercase transition-all active:scale-95 ${localDeck === deckName
+                        ? 'bg-blue-500 text-white shadow-md'
+                        : isLocked
+                          ? 'bg-slate-100 text-slate-400 opacity-80'
+                          : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                        } `}
                     >
                       <div className="flex flex-col items-center justify-center">
                         <div className="flex items-center gap-2">
@@ -623,23 +492,8 @@ export const Setup: React.FC = () => {
               return (
                 <div key={team.id} className="flex flex-col gap-2">
                   <div
-                    className={`animate-fade-in flex items-center gap-2 ${draggingIndex === idx ? 'z-20 opacity-70 shadow-lg' : ''} ${touchState.index === idx ? '' : 'transition-transform duration-200'}`}
-                    data-team-item
-                    draggable
-                    onDragStart={(e) => onDragStart(e, idx)}
-                    onDragOver={(e) => onDragOver(e, idx)}
-                    onDragEnd={onDragEnd}
-                    onTouchStart={(e) => onTouchStart(e, idx)}
-                    onTouchMove={onTouchMove}
-                    onTouchEnd={onTouchEnd}
-                    style={{
-                      transform: getItemTransform(idx),
-                      pointerEvents: touchState.index === idx ? 'none' : 'auto',
-                      transition:
-                        touchState.index === idx
-                          ? 'none'
-                          : 'transform 200ms ease-out',
-                    }}
+                    {...getItemProps(idx)}
+                    className={`animate-fade-in flex items-center gap-2 ${getItemProps(idx).className}`}
                   >
                     <TeamColorButton
                       colorIndex={team.colorIndex}
@@ -695,51 +549,51 @@ export const Setup: React.FC = () => {
         isOpen={colorPickerTeamId !== null}
         onClose={() => setColorPickerTeamId(null)}
       >
-            <div className="mb-6 text-center">
-              <h3 className="text-xl font-black tracking-wide text-slate-800 uppercase">
-                Select Color
-              </h3>
-              <p className="text-sm font-bold text-slate-400">
-                {localTeams.find((t) => t.id === colorPickerTeamId)?.name}
-              </p>
-            </div>
+        <div className="mb-6 text-center">
+          <h3 className="text-xl font-black tracking-wide text-slate-800 uppercase">
+            Select Color
+          </h3>
+          <p className="text-sm font-bold text-slate-400">
+            {localTeams.find((t) => t.id === colorPickerTeamId)?.name}
+          </p>
+        </div>
 
-            <div className="grid grid-cols-4 gap-3">
-              {TEAM_COLORS.map((colorClass, cIdx) => {
-                // Check if taken by other teams
-                const isTaken = localTeams.some(
-                  (t) => t.id !== colorPickerTeamId && t.colorIndex === cIdx
-                );
-                const isSelected =
-                  localTeams.find((t) => t.id === colorPickerTeamId)
-                    ?.colorIndex === cIdx;
+        <div className="grid grid-cols-4 gap-3">
+          {TEAM_COLORS.map((colorClass, cIdx) => {
+            // Check if taken by other teams
+            const isTaken = localTeams.some(
+              (t) => t.id !== colorPickerTeamId && t.colorIndex === cIdx
+            );
+            const isSelected =
+              localTeams.find((t) => t.id === colorPickerTeamId)
+                ?.colorIndex === cIdx;
 
-                return (
-                  <button
-                    key={cIdx}
-                    disabled={isTaken}
-                    onClick={() => {
-                      const idx = localTeams.findIndex(
-                        (t) => t.id === colorPickerTeamId
-                      );
-                      if (idx !== -1) updateTeamColor(idx, cIdx);
-                    }}
-                    className={`flex h-14 w-14 items-center justify-center rounded-xl shadow-sm transition-all ${colorClass} ${isSelected ? 'z-10 scale-110 ring-4 ring-slate-300 ring-offset-2' : ''} ${isTaken ? 'cursor-not-allowed opacity-30 shadow-none saturate-50' : 'hover:scale-110 active:scale-95'} `}
-                  >
-                    {isSelected && (
-                      <div className="h-3 w-3 rounded-full bg-white shadow-sm" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            return (
+              <button
+                key={cIdx}
+                disabled={isTaken}
+                onClick={() => {
+                  const idx = localTeams.findIndex(
+                    (t) => t.id === colorPickerTeamId
+                  );
+                  if (idx !== -1) updateTeamColor(idx, cIdx);
+                }}
+                className={`flex h-14 w-14 items-center justify-center rounded-xl shadow-sm transition-all ${colorClass} ${isSelected ? 'z-10 scale-110 ring-4 ring-slate-300 ring-offset-2' : ''} ${isTaken ? 'cursor-not-allowed opacity-30 shadow-none saturate-50' : 'hover:scale-110 active:scale-95'} `}
+              >
+                {isSelected && (
+                  <div className="h-3 w-3 rounded-full bg-white shadow-sm" />
+                )}
+              </button>
+            );
+          })}
+        </div>
 
-            <button
-              onClick={() => setColorPickerTeamId(null)}
-              className="mt-6 w-full rounded-2xl bg-slate-100 py-4 font-black tracking-wide text-slate-500 uppercase hover:bg-slate-200"
-            >
-              Cancel
-            </button>
+        <button
+          onClick={() => setColorPickerTeamId(null)}
+          className="mt-6 w-full rounded-2xl bg-slate-100 py-4 font-black tracking-wide text-slate-500 uppercase hover:bg-slate-200"
+        >
+          Cancel
+        </button>
       </Modal>
     </SafeScreen>
   );

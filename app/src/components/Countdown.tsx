@@ -44,7 +44,7 @@ export const Countdown: React.FC = () => {
 
   // Timer Logic
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused) return undefined;
 
     let timer: NodeJS.Timeout;
 

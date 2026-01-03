@@ -19,5 +19,15 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Warn on console.log but allow console.error/warn for error handling
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      // Enforce consistent return statements
+      'consistent-return': 'error',
+      // Prefer const over let when variable is never reassigned
+      'prefer-const': 'error',
+      // Enforce consistent spacing in object literals
+      'object-curly-spacing': ['error', 'always'],
+    },
   },
 ])

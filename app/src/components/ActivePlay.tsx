@@ -61,7 +61,7 @@ export const ActivePlay: React.FC = () => {
 
   useEffect(() => {
     // If paused, do nothing
-    if (isPaused) return;
+    if (isPaused) return undefined;
 
     // Timer Logic
 
@@ -70,7 +70,7 @@ export const ActivePlay: React.FC = () => {
 
       endTurn();
 
-      return;
+      return undefined;
     }
 
     const timer = setInterval(() => {
