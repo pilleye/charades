@@ -59,6 +59,7 @@ export function useTimer({
     }
 
     return () => clear();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive, clear, onFinish, onTick]); // Removed remaining from deps to avoid interval reset on every tick
 
   return {

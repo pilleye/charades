@@ -8,7 +8,7 @@ import { TeamEditor } from './setup/TeamEditor';
 import { GameRulesEditor } from './setup/GameRulesEditor';
 import { DeckSelector } from './setup/DeckSelector';
 
-export type PaywallTrigger = 'full_deck' | 'locked_deck' | 'custom_words' | 'settings';
+export type PaywallTrigger = 'full_deck' | 'locked_deck' | 'custom_words';
 
 export const Setup: React.FC = () => {
   const store = useGameStore();

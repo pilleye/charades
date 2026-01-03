@@ -91,7 +91,6 @@ export const ActivePlay: React.FC = () => {
   };
 
   const handleResume = () => {
-    setShowQuitConfirm(false);
     setView('PAUSED'); // Reset view on resume
     togglePause();
   };
