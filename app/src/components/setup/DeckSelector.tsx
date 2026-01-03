@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { DEFAULT_DECKS, FREE_TIER_CARD_LIMIT } from '@/data/decks';
+import { DEFAULT_DECKS } from '@/data/decks';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { LockIcon, TrashIcon } from '../ui/Icons';
+import { TrashIcon } from '../ui/Icons';
 import { PremiumGate } from '../ui/PremiumGate';
 import { useIsPremium } from '@/store/subscriptionStore';
+import type { PaywallTrigger } from '../Setup';
 
 interface DeckSelectorProps {
   selectedDeck: string;
@@ -12,7 +13,7 @@ interface DeckSelectorProps {
   customWords: string[];
   onAddWord: (word: string) => void;
   onRemoveWord: (word: string) => void;
-  onPaywallTrigger: (trigger: any) => void;
+  onPaywallTrigger: (trigger: PaywallTrigger) => void;
 }
 
 export const DeckSelector: React.FC<DeckSelectorProps> = ({

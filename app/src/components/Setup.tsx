@@ -3,11 +3,12 @@ import { useGameStore } from '@/store/gameStore';
 import { Button } from './ui/Button';
 import { CogIcon, BackIcon } from './ui/Icons';
 import { SafeScreen } from './ui/SafeArea';
-import { useSubscriptionStore } from '@/store/subscriptionStore';
 import { Paywall } from './Paywall';
 import { TeamEditor } from './setup/TeamEditor';
 import { GameRulesEditor } from './setup/GameRulesEditor';
 import { DeckSelector } from './setup/DeckSelector';
+
+export type PaywallTrigger = 'full_deck' | 'locked_deck' | 'custom_words' | 'settings';
 
 export const Setup: React.FC = () => {
   const store = useGameStore();
@@ -26,7 +27,7 @@ export const Setup: React.FC = () => {
   const [localDeck, setLocalDeck] = useState(store.selectedDeck);
 
   const [paywallOpen, setPaywallOpen] = useState(false);
-  const [paywallTrigger, setPaywallTrigger] = useState<any>('full_deck');
+  const [paywallTrigger, setPaywallTrigger] = useState<PaywallTrigger>('full_deck');
 
   const handleStart = () => {
     store.setTeams(localTeams);

@@ -3,23 +3,23 @@ import { soundEngine } from '../lib/audio';
 
 export function useGameAudio() {
   const playCorrect = useCallback(() => {
-    soundEngine.play('correct');
+    soundEngine.playSuccess();
   }, []);
 
   const playSkip = useCallback(() => {
-    soundEngine.play('skip');
+    soundEngine.playSkip();
   }, []);
 
   const playTimeUp = useCallback(() => {
-    soundEngine.play('timeUp');
+    soundEngine.playBuzzer();
   }, []);
 
   const playCountdown = useCallback(() => {
-    soundEngine.play('countdown');
+    soundEngine.playCountdown(true);
   }, []);
 
   const playTick = useCallback(() => {
-    soundEngine.play('tick');
+    soundEngine.playTick();
   }, []);
 
   return {

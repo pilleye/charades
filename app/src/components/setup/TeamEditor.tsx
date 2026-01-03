@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Team } from '@/store/types';
+import type { Team } from '@/store/types';
 import { TEAM_COLORS } from '@/constants';
 import { NumberControl } from '../ui/Controls';
 import { TeamColorButton } from '../ui/TeamBadge';
@@ -68,7 +68,7 @@ export const TeamEditor: React.FC<TeamEditorProps> = ({ teams, onTeamsChange }) 
 
       <div className="space-y-3 pt-2">
         {teams.map((team, idx) => (
-          <div key={team.id} className="flex items-center gap-2" {...getItemProps(idx)}>
+          <div key={team.id} {...getItemProps(idx)} className="flex items-center gap-2">
             <TeamColorButton
               colorIndex={team.colorIndex}
               onClick={() => setColorPickerTeamId(team.id)}

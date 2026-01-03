@@ -9,7 +9,7 @@ import { TEAM_COLORS } from '@/constants';
 
 export const Review: React.FC = () => {
   const {
-    currentTurnWords,
+    turn,
     updateReviewWord,
     applyReviewScores,
     pointsPerWord,
@@ -22,6 +22,8 @@ export const Review: React.FC = () => {
 
   const currentTeam = teams[currentTeamIndex];
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
+  
+  const currentTurnWords = turn?.wordsPlayed || [];
 
   const handleSelectStatus = (
     index: number,

@@ -5,6 +5,7 @@ import { useGameStore } from '@/store/gameStore';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useTimer } from '@/hooks/useTimer';
 import { PauseMenuOverlay } from './ui/PauseMenuOverlay';
+import { TEAM_COLORS } from '@/constants';
 
 // Icons
 const PauseIcon = () => (
@@ -26,11 +27,16 @@ const PauseIcon = () => (
 
 export const Countdown: React.FC = () => {
   const {
-    drawWord,
+    beginActiveRound,
     isPaused,
     togglePause,
     resetGame,
+    teams,
+    currentTeamIndex,
   } = useGameStore();
+
+  const currentTeam = teams[currentTeamIndex];
+  const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
 
   const { playCountdown, playTick } = useGameAudio();
 
@@ -41,8 +47,7 @@ export const Countdown: React.FC = () => {
     onFinish: () => {
       playCountdown();
       setTimeout(() => {
-        useGameStore.setState({ phase: 'ACTIVE' });
-        drawWord();
+        beginActiveRound();
       }, 800);
     },
   });

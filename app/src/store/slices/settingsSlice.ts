@@ -1,4 +1,4 @@
-import { GameSliceCreator, SettingsSlice } from '../types';
+import type { GameSliceCreator, SettingsSlice } from '../types';
 
 export const createSettingsSlice: GameSliceCreator<SettingsSlice> = (set) => ({
   roundDuration: 60,

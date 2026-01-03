@@ -1,4 +1,4 @@
-import { GameSliceCreator, GameSlice } from '../types';
+import type { GameSliceCreator, GameSlice } from '../types';
 
 export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
   phase: 'SETUP',
@@ -54,7 +54,7 @@ export const createGameSlice: GameSliceCreator<GameSlice> = (set, get) => ({
       phase: 'SETUP',
       teams: resetTeams,
       currentRound: 1,
-      currentTurnWords: [],
+      turn: null, // Ensure strict cleanup
       isGameOver: false,
       isPaused: false,
     });

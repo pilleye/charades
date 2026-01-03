@@ -1,7 +1,7 @@
 import { DEFAULT_DECKS, FREE_TIER_CARD_LIMIT, normalizeForDuplicateCheck } from '@/data/decks';
 import type { DeckItem } from '@/data/decks/types';
 import { useSubscriptionStore } from '../subscriptionStore';
-import { GameSliceCreator, DeckSlice } from '../types';
+import type { GameSliceCreator, DeckSlice } from '../types';
 
 export const shuffleArray = (array: DeckItem[]) => {
   const newArr = [...array];
@@ -31,9 +31,8 @@ export const createDeckSlice: GameSliceCreator<DeckSlice> = (set, get) => ({
   customWords: [],
   availableWords: [],
   usedWords: [],
-  currentActiveWord: null,
 
-  drawWord: () => {
+  drawNextCard: (): DeckItem => {
     const { availableWords, usedWords, selectedDeck, customWords } = get();
     const isPremium = useSubscriptionStore.getState().status === 'active';
     let deck = [...availableWords];
@@ -52,10 +51,9 @@ export const createDeckSlice: GameSliceCreator<DeckSlice> = (set, get) => ({
     }
 
     const nextWord = deck.pop();
-    set({
-      availableWords: deck,
-      currentActiveWord: nextWord || { word: 'No Words Left!' },
-    });
+    set({ availableWords: deck });
+    
+    return nextWord || { word: 'No Words Left!' };
   },
 
   setDeckConfig: (selectedDeck, customWords) => set({ selectedDeck, customWords }),

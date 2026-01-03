@@ -50,12 +50,21 @@ export interface DeckSlice {
   customWords: string[];
   availableWords: DeckItem[];
   usedWords: DeckItem[];
-  currentActiveWord: DeckItem | null;
-  drawWord: () => void;
+  // currentActiveWord removed - belongs to Turn
+  drawNextCard: () => DeckItem; // Returns the card, updates internal deck state
   setDeckConfig: (deckName: string, customWords: string[]) => void;
   addCustomWord: (word: string) => void;
   removeCustomWord: (word: string) => void;
   initializeDeck: () => void;
+}
+
+export interface ActiveTurn {
+  timeRemaining: number;
+  skipsRemaining: number | 'Infinite';
+  activeWord: DeckItem | null;
+  wordsPlayed: WordResult[];
+  secondChanceQueue: string[];
+  secondChanceIndex: number;
 }
 
 export interface GameSlice {
@@ -70,12 +79,9 @@ export interface GameSlice {
 }
 
 export interface TurnSlice {
-  currentTurnWords: WordResult[];
-  turnTimeRemaining: number;
-  turnSkipsRemaining: number | 'Infinite';
-  secondChanceQueue: string[];
-  secondChanceIndex: number;
+  turn: ActiveTurn | null; // Encapsulated Turn State
   startTurn: () => void;
+  beginActiveRound: () => void;
   endTurn: () => void;
   markWord: (status: 'GOT_IT' | 'SKIPPED') => void;
   updateReviewWord: (index: number, status: 'GOT_IT' | 'SKIPPED' | 'SECOND_CHANCE') => void;

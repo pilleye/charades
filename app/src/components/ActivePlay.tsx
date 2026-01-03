@@ -1,17 +1,22 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useTimer } from '@/hooks/useTimer';
 import { getWordFontSize } from '@/lib/typography';
-
-// ... (Button, Icon, etc imports remain)
+import { TeamBadge } from './ui/TeamBadge';
+import { PauseIcon, SkipIcon, CheckIcon, CogIcon, BackIcon } from './ui/Icons';
+import { PauseMenuOverlay as Overlay } from './ui/PauseMenuOverlay';
+import { Button } from './ui/Button';
+import { NumberControl, InfiniteToggleControl } from './ui/Controls';
+import { SegmentedControl } from './ui/SegmentedControl';
+import { TEAM_COLORS } from '@/constants';
+import { HintDisplay } from './ui/HintDisplay';
 
 export const ActivePlay: React.FC = () => {
   const {
-    currentActiveWord,
-    turnTimeRemaining,
-    turnSkipsRemaining,
+    turn,
     markWord,
     endTurn,
     isPaused,
@@ -26,7 +31,16 @@ export const ActivePlay: React.FC = () => {
     currentRound,
     skipsPerTurn,
     updateSkipsPerTurn,
+    teams,
+    currentTeamIndex,
   } = useGameStore();
+
+  const turnTimeRemaining = turn?.timeRemaining ?? 0;
+  const turnSkipsRemaining = turn?.skipsRemaining ?? 0;
+  const currentActiveWord = turn?.activeWord;
+
+  const currentTeam = teams[currentTeamIndex];
+  const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
 
   const { playCorrect, playSkip, playTimeUp, playTick } = useGameAudio();
 
@@ -34,7 +48,10 @@ export const ActivePlay: React.FC = () => {
     initialTime: turnTimeRemaining,
     autoStart: !isPaused,
     onTick: (rem) => {
-      useGameStore.setState({ turnTimeRemaining: rem });
+      // Safely update nested state
+      useGameStore.setState((state) => ({
+        turn: state.turn ? { ...state.turn, timeRemaining: rem } : null
+      }));
       if (rem > 0) playTick();
     },
     onFinish: () => {
@@ -49,10 +66,18 @@ export const ActivePlay: React.FC = () => {
     else start();
   }, [isPaused, pause, start]);
 
-  const [showQuitConfirm, setShowQuitConfirm] = useState(false);
   const [view, setView] = useState<'PAUSED' | 'SETTINGS'>('PAUSED');
   
-  // ... (lastRoundsValue, etc)
+  // Helpers for settings controls
+  const toggleInfiniteSkips = () => {
+    updateSkipsPerTurn(skipsPerTurn === 'Infinite' ? 3 : 'Infinite');
+  };
+  const toggleInfiniteRounds = () => {
+    updateTotalRounds(totalRounds === 'Infinite' ? 5 : 'Infinite');
+  };
+
+  const lastSkipsValue = typeof skipsPerTurn === 'number' ? skipsPerTurn : 3;
+  const lastRoundsValue = typeof totalRounds === 'number' ? totalRounds : 5;
 
   const handleGotIt = () => {
     playCorrect();
@@ -69,24 +94,18 @@ export const ActivePlay: React.FC = () => {
     setShowQuitConfirm(false);
     setView('PAUSED'); // Reset view on resume
     togglePause();
-
-    // Re-enable wake lock when resuming is now handled by useEffect
   };
 
-  const displayWord = currentActiveWord?.word || 'Done!';
-
+  const displayWord = currentActiveWord?.word || 'Get Ready!';
   const displayHint = currentActiveWord?.hint;
 
   const progressPercent = Math.min(
     100,
-
     (turnTimeRemaining / roundDuration) * 100
   );
 
   // Timer State Logic
-
   const isCritical = turnTimeRemaining <= 5;
-
   const isWarning = turnTimeRemaining <= 10 && !isCritical;
 
   return (
@@ -221,51 +240,22 @@ export const ActivePlay: React.FC = () => {
         </div>
       </div>
 
-      <Overlay isOpen={isPaused} className="p-0">
-        {view === 'PAUSED' && !showQuitConfirm && (
-          <div className="flex w-full flex-col items-center justify-center space-y-8 px-10 py-6">
-            <h2 className="text-center text-4xl font-black text-slate-900">
-              GAME PAUSED
-            </h2>
+      <Overlay isOpen={isPaused && view === 'PAUSED'} onResume={handleResume} onQuit={resetGame}>
+        <Button
+          variant="secondary"
+          size="lg"
+          fullWidth
+          onClick={() => setView('SETTINGS')}
+          className="gap-2"
+          icon={<CogIcon />}
+        >
+          GAME SETTINGS
+        </Button>
+      </Overlay>
 
-            <div className="space-y-4">
-              <Button
-                variant="primary"
-                size="xl"
-                fullWidth
-                onClick={handleResume}
-              >
-                RESUME
-              </Button>
-
-              <Button
-                variant="secondary"
-                size="lg"
-                fullWidth
-                onClick={() => setView('SETTINGS')}
-                className="gap-2"
-                icon={<CogIcon />}
-              >
-                GAME SETTINGS
-              </Button>
-
-              <div className="pt-4">
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  fullWidth
-                  onClick={() => setShowQuitConfirm(true)}
-                  className="bg-red-50 text-red-500 hover:bg-red-100"
-                >
-                  QUIT GAME
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {view === 'SETTINGS' && (
-          <div className="flex h-full w-full flex-col bg-slate-50">
+      {/* Settings View - Renders on top of everything when active */}
+      {isPaused && view === 'SETTINGS' && (
+        <div className="absolute inset-0 z-50 flex h-full w-full flex-col bg-slate-50">
             {/* Settings Header */}
             <header className="flex shrink-0 items-center justify-between p-4">
               <button
@@ -351,39 +341,8 @@ export const ActivePlay: React.FC = () => {
                 DONE
               </Button>
             </div>
-          </div>
-        )}
-
-        {showQuitConfirm && (
-          <div className="flex w-full flex-col items-center justify-center space-y-6 px-10 py-6">
-            <h2 className="text-center text-3xl font-black text-slate-900">
-              EXIT TO MENU?
-            </h2>
-            <p className="-mt-4 text-center font-bold text-slate-500">
-              Current game progress will be lost.
-            </p>
-
-            <div className="w-full max-w-sm space-y-4">
-              <Button
-                variant="danger"
-                size="xl"
-                fullWidth
-                onClick={resetGame}
-              >
-                YES, EXIT GAME
-              </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                fullWidth
-                onClick={() => setShowQuitConfirm(false)}
-              >
-                CANCEL
-              </Button>
-            </div>
-          </div>
-        )}
-      </Overlay>
+        </div>
+      )}
     </div>
   );
 };

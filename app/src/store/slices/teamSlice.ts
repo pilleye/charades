@@ -1,4 +1,4 @@
-import { GameSliceCreator, TeamSlice } from '../types';
+import type { GameSliceCreator, TeamSlice } from '../types';
 
 export const createTeamSlice: GameSliceCreator<TeamSlice> = (set) => ({
   teams: [

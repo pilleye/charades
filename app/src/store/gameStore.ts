@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { RootState } from './types';
+import type { RootState } from './types';
 import { createSettingsSlice } from './slices/settingsSlice';
 import { createTeamSlice } from './slices/teamSlice';
 import { createDeckSlice } from './slices/deckSlice';
@@ -43,12 +43,9 @@ export const useGameStore = create<RootState>()(
         isGameOver: state.isGameOver,
         availableWords: state.availableWords,
         usedWords: state.usedWords,
-        currentTurnWords: state.currentTurnWords,
-        currentActiveWord: state.currentActiveWord,
-        turnTimeRemaining: state.turnTimeRemaining,
-        turnSkipsRemaining: state.turnSkipsRemaining,
-        secondChanceQueue: state.secondChanceQueue,
-        secondChanceIndex: state.secondChanceIndex,
+        
+        // Encapsulated Turn State
+        turn: state.turn,
       }),
     }
   )

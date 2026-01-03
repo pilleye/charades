@@ -11,13 +11,15 @@ import { PauseMenuOverlay } from './ui/PauseMenuOverlay';
 
 export const SecondChanceRound: React.FC = () => {
   const {
-    secondChanceQueue,
-    secondChanceIndex,
+    turn,
     resolveSecondChance,
     resetGame,
     teams,
     currentTeamIndex,
   } = useGameStore();
+
+  const secondChanceQueue = turn?.secondChanceQueue || [];
+  const secondChanceIndex = turn?.secondChanceIndex || 0;
 
   const [isPaused, setIsPaused] = useState(false);
 
