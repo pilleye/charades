@@ -26,6 +26,10 @@ export function useGameAudio() {
     soundEngine.playTick(freq, volume);
   }, []);
 
+  const playUrgentTick = useCallback((rem: number) => {
+    soundEngine.playUrgentTick(rem);
+  }, []);
+
   return {
     playCorrect,
     playSkip,
@@ -33,5 +37,6 @@ export function useGameAudio() {
     playCountdown,
     playReadyBeep,
     playTick,
+    playUrgentTick,
   };
 }

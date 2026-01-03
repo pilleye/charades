@@ -168,12 +168,14 @@ class SoundEngine {
       const t = ctx.currentTime;
 
       if (isGo) {
-        // GO! Sound: Mario Kart Style
-        this.playTone(1046.5, 'square', t, 0.6, 0.4);
-        this.playTone(1318.51, 'square', t, 0.6, 0.4);
+        // GO! Sound: Mario Kart Style high peak
+        // A combination of frequencies to make it "thick"
+        this.playTone(1046.5, 'square', t, 0.6, 0.4); // C6
+        this.playTone(1318.51, 'square', t, 0.6, 0.4); // E6
+        this.playTone(1567.98, 'square', t, 0.6, 0.4); // G6
       } else {
-        // 3-2-1 Sound: Loud, distinct blip
-        this.playTone(523.25, 'sine', t, 0.2, 0.5);
+        // 3-2-1 Sound: Sharp, neutral mid-beep
+        this.playTone(523.25, 'square', t, 0.1, 0.4); // C5
       }
     } catch (err) {
       console.error('Failed to play countdown feedback:', err);
@@ -188,45 +190,79 @@ class SoundEngine {
       // Play audio
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
-      const duration = 0.6;
+      const pulseCount = 4;
+      const pulseDuration = 0.12;
+      const gap = 0.04;
 
       const masterGain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(600, t);
-      filter.frequency.linearRampToValueAtTime(200, t + duration);
-
-      masterGain.gain.setValueAtTime(0.3, t);
-      masterGain.gain.setValueAtTime(0.3, t + duration - 0.1);
-      masterGain.gain.exponentialRampToValueAtTime(0.001, t + duration);
-
-      filter.connect(masterGain);
+      masterGain.gain.setValueAtTime(0.4, t); // Louder
       masterGain.connect(ctx.destination);
 
-      const osc1 = ctx.createOscillator();
-      osc1.type = 'square';
-      osc1.frequency.setValueAtTime(140, t);
-      osc1.frequency.exponentialRampToValueAtTime(80, t + duration);
-
-      const osc2 = ctx.createOscillator();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(138, t);
-      osc2.frequency.exponentialRampToValueAtTime(78, t + duration);
-
-      osc1.connect(filter);
-      osc2.connect(filter);
-
-      osc1.start(t);
-      osc1.stop(t + duration);
-      osc2.start(t);
-      osc2.stop(t + duration);
+      // Bright Arcade Buzzer: Fast pulses of filtered square waves
+      // Using a major-ish interval (250Hz and 375Hz - Perfect Fifth)
+      // High-energy but "clean" (not gritty)
+      for (let i = 0; i < pulseCount; i++) {
+        const startTime = t + i * (pulseDuration + gap);
+        
+        [250, 375].forEach(freq => {
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          const filter = ctx.createBiquadFilter();
+          
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freq, startTime);
+          
+          // Filter out the "grittiness" while keeping the "thickness"
+          filter.type = 'lowpass';
+          filter.frequency.value = 2500;
+          
+          g.gain.setValueAtTime(0, startTime);
+          g.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
+          g.gain.setValueAtTime(0.3, startTime + pulseDuration - 0.01);
+          g.gain.linearRampToValueAtTime(0, startTime + pulseDuration);
+          
+          osc.connect(filter);
+          filter.connect(g);
+          g.connect(masterGain);
+          
+          osc.start(startTime);
+          osc.stop(startTime + pulseDuration);
+        });
+      }
     } catch (err) {
       console.error('Failed to play buzzer feedback:', err);
     }
   }
 
-  public async playTick(freq: number = 800, volume: number = 0.02) {
+  public async playUrgentTick(rem: number) {
+    try {
+      if (this.hapticsSupported) {
+        await Haptics.impact({ style: ImpactStyle.Medium });
+      }
+      
+      const ctx = await this.ensureContextReady();
+      const t = ctx.currentTime;
+      
+      const freq = 800; 
+      const volume = 0.4; // Significantly louder
+      const duration = 0.1; 
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(volume, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + duration);
+    } catch (err) {
+      console.error('Failed to play urgent tick:', err);
+    }
+  }
+
+  public async playTick(freq: number = 800, volume: number = 0.01) {
     try {
       // Play haptic feedback (silent for tick to avoid spam)
       await this.playHaptic('tick');

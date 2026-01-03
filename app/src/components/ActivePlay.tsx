@@ -46,7 +46,7 @@ export const ActivePlay: React.FC = () => {
   const currentTeam = teams[currentTeamIndex];
   const teamColorBg = TEAM_COLORS[currentTeam.colorIndex % TEAM_COLORS.length];
 
-  const { playCorrect, playSkip, playTimeUp, playTick } = useGameAudio();
+  const { playCorrect, playSkip, playTimeUp, playTick, playUrgentTick } = useGameAudio();
 
   const { pause, start } = useTimer({
     initialTime: turnTimeRemaining,
@@ -55,23 +55,22 @@ export const ActivePlay: React.FC = () => {
       updateTimer(rem);
       
       if (rem > 0) {
-        // Audio Logic:
-        // Quiet (0.02) until 10s
-        // Gradually louder (up to 0.15) from 10s to 1s
-        // Pitch jump (800 -> 1200) from 5s
-        
-        let volume = 0.02;
-        let freq = 800;
-        
-        if (rem <= 10) {
-          volume = 0.02 + (11 - rem) * 0.015; // 0.035 at 10s, 0.17 at 1s
-        }
-        
         if (rem <= 5) {
-          freq = 800 + (6 - rem) * 100; // 900 at 5s, 1300 at 1s
+          playUrgentTick(rem);
+        } else {
+          // Audio Logic:
+          // Quiet (0.005) until 10s
+          // Gradually louder (up to 0.05) from 10s to 6s
+          
+          let volume = 0.005;
+          const freq = 800;
+          
+          if (rem <= 10) {
+            volume = 0.005 + (11 - rem) * 0.01; 
+          }
+          
+          playTick(freq, volume);
         }
-
-        playTick(freq, volume);
       }
     },
     onFinish: () => {
