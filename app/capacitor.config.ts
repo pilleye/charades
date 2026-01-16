@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.charades.app',
+  appId: 'com.adityapillai.charades',
   appName: 'Charades',
   webDir: 'dist',
   plugins: {
