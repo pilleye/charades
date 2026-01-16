@@ -3,8 +3,10 @@ import { persist } from 'zustand/middleware';
 import { Capacitor } from '@capacitor/core';
 import { NativePurchases, PURCHASE_TYPE, type Transaction } from '@capgo/native-purchases';
 
-// Product ID - must match App Store Connect
-export const PRODUCT_ID = 'charades_premium_yearly';
+// Product IDs
+export const PRODUCT_ID_FULL = 'charades_premium_yearly_999';
+export const PRODUCT_ID_DISCOUNT = 'charades_premium_yearly_499';
+const ALL_PRODUCT_IDS = [PRODUCT_ID_FULL, PRODUCT_ID_DISCOUNT];
 
 export type SubscriptionStatus =
   | 'unknown'
@@ -13,6 +15,12 @@ export type SubscriptionStatus =
   | 'expired'
   | 'not_subscribed';
 
+interface ProductInfo {
+  id: string;
+  title: string;
+  price: string;
+}
+
 interface SubscriptionState {
   // Status
   status: SubscriptionStatus;
@@ -20,15 +28,19 @@ interface SubscriptionState {
   error: string | null;
 
   // Product info (fetched from store)
-  productTitle: string | null;
-  productPrice: string | null;
+  products: Record<string, ProductInfo>;
+
+  // Flash Sale Logic
+  offerEndTime: number | null; // Timestamp when the discount expires
 
   // Actions
   initialize: () => Promise<void>;
-  purchase: () => Promise<boolean>;
+  purchase: (productId: string) => Promise<boolean>;
   restore: () => Promise<boolean>;
   setStatus: (status: SubscriptionStatus) => void;
   setError: (error: string | null) => void;
+  activateOffer: (durationMs: number) => void;
+  checkAndReactivateOffer: () => void;
 }
 
 // Helper to check if a subscription is active
@@ -44,11 +56,49 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       status: 'unknown',
       isInitialized: false,
       error: null,
-      productTitle: null,
-      productPrice: null,
+      products: {},
+      offerEndTime: null,
 
       setStatus: (status) => set({ status }),
       setError: (error) => set({ error }),
+
+      activateOffer: (durationMs) => {
+        set({ offerEndTime: Date.now() + durationMs });
+      },
+
+      checkAndReactivateOffer: () => {
+        const { offerEndTime, activateOffer } = get();
+        const now = Date.now();
+
+        // 1. First time user? Activate standard 15 min offer
+        if (!offerEndTime) {
+          activateOffer(15 * 60 * 1000);
+          return;
+        }
+
+        // 2. Offer currently active? Do nothing.
+        if (offerEndTime > now) {
+          return;
+        }
+
+        // 3. Offer expired. Check cooldown (e.g., 1 hour)
+        const COOLDOWN = 60 * 60 * 1000;
+        if (now - offerEndTime < COOLDOWN) {
+          return;
+        }
+
+        // 4. Random Chance (30%)
+        const isLucky = Math.random() < 0.3;
+
+        if (isLucky) {
+          // Reactivate for shorter time (5 mins) to increase urgency
+          activateOffer(5 * 60 * 1000);
+        } else {
+          // Failed roll. Reset "last expiration" to now to restart cooldown.
+          // This prevents spamming open/close to force a lucky roll.
+          set({ offerEndTime: now });
+        }
+      },
 
       initialize: async () => {
         // Only run on native iOS
@@ -66,24 +116,27 @@ export const useSubscriptionStore = create<SubscriptionState>()(
 
         try {
           // Get products from App Store
-          const { products } = await NativePurchases.getProducts({
-            productIdentifiers: [PRODUCT_ID],
+          const { products: storeProducts } = await NativePurchases.getProducts({
+            productIdentifiers: ALL_PRODUCT_IDS,
             productType: PURCHASE_TYPE.SUBS,
           });
 
-          if (products.length > 0) {
-            const product = products[0];
-            set({
-              productTitle: product.title || 'Premium',
-              productPrice: product.priceString || '$0.99',
-            });
-          }
+          const productsMap: Record<string, ProductInfo> = {};
+          storeProducts.forEach((p) => {
+            productsMap[p.identifier] = {
+              id: p.identifier,
+              title: p.title || 'Premium',
+              price: p.priceString || '$9.99',
+            };
+          });
+
+          set({ products: productsMap });
 
           // Check current purchases (active subscriptions)
           const { purchases } = await NativePurchases.getPurchases();
 
           const hasActiveSubscription = purchases.some(
-            (t) => t.productIdentifier === PRODUCT_ID && isSubscriptionActive(t)
+            (t) => ALL_PRODUCT_IDS.includes(t.productIdentifier) && isSubscriptionActive(t)
           );
 
           set({
@@ -100,7 +153,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         }
       },
 
-      purchase: async () => {
+      purchase: async (productId: string) => {
         if (!Capacitor.isNativePlatform()) {
           set({ error: 'Purchases only available on device' });
           return false;
@@ -110,7 +163,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           set({ error: null });
 
           const transaction = await NativePurchases.purchaseProduct({
-            productIdentifier: PRODUCT_ID,
+            productIdentifier: productId,
             productType: PURCHASE_TYPE.SUBS,
           });
 
@@ -151,7 +204,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           const { purchases } = await NativePurchases.getPurchases();
 
           const hasActiveSubscription = purchases.some(
-            (t) => t.productIdentifier === PRODUCT_ID && isSubscriptionActive(t)
+            (t) => ALL_PRODUCT_IDS.includes(t.productIdentifier) && isSubscriptionActive(t)
           );
 
           if (hasActiveSubscription) {
@@ -175,8 +228,9 @@ export const useSubscriptionStore = create<SubscriptionState>()(
     {
       name: 'charades-subscription',
       partialize: (state) => ({
-        // Only persist status to remember subscription between sessions
+        // Persist status and offer timer
         status: state.status,
+        offerEndTime: state.offerEndTime,
       }),
     }
   )

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charades Support</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --text: #1e293b;
+            --bg: #f8fafc;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            margin-bottom: 8px;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+        p {
+            color: #64748b;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+        .email-box {
+            background: #f1f5f9;
+            padding: 16px;
+            border-radius: 12px;
+            font-family: monospace;
+            font-size: 18px;
+            color: var(--text);
+            border: 2px dashed #cbd5e1;
+            margin-bottom: 16px;
+            word-break: break-all;
+        }
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: transform 0.2s, background 0.2s;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        #copy-toast {
+            visibility: hidden;
+            background: #334155;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            transition: visibility 0s, opacity 0.3s linear;
+            opacity: 0;
+        }
+        #copy-toast.show {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="icon">✉️</div>
+        <h1>Support</h1>
+        <p>Need help with Charades? Reach out to our team via email and we'll get back to you as soon as possible.</p>
+        
+        <div class="email-box" id="email">playcharades@proton.me</div>
+        
+        <button class="btn" onclick="copyEmail()">Copy Email Address</button>
+        
+        <div class="footer">
+            <a href="privacy.html" style="color: #94a3b8; text-decoration: none; margin-bottom: 8px; display: inline-block;">Privacy Policy</a><br>
+            &copy; 2026 Aditya Pillai. All rights reserved.
+        </div>
+    </div>
+
+    <div id="copy-toast">Copied to clipboard!</div>
+
+    <script>
+        function copyEmail() {
+            const email = document.getElementById('email').innerText;
+            navigator.clipboard.writeText(email).then(() => {
+                const toast = document.getElementById('copy-toast');
+                toast.className = 'show';
+                setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 3000);
+            });
+        }
+    </script>
+</body>
+</html>
