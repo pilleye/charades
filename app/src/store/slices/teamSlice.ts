@@ -1,8 +1,8 @@
-import type { GameSliceCreator, TeamSlice, GamePhase } from '../types';
+import type { GameSliceCreator, TeamSlice } from '../types';
 import { makeScore, makeTeamName, addToScore } from '../types/branded';
 import { clampTeamIndex, isValidTeamIndex } from '../utils/teamAccess';
 
-export const createTeamSlice: GameSliceCreator<TeamSlice> = (set, get) => ({
+export const createTeamSlice: GameSliceCreator<TeamSlice> = (set) => ({
   teams: [
     { id: 1, name: makeTeamName('Team 1')!, score: makeScore(0), colorIndex: 0 },
     { id: 2, name: makeTeamName('Team 2')!, score: makeScore(0), colorIndex: 1 },

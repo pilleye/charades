@@ -1,7 +1,7 @@
 // Audio + Haptic feedback engine using Web Audio API + Capacitor Haptics
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
-console.log('[SoundEngine] audio.ts module loaded/reloaded');
+console.info('[SoundEngine] audio.ts module loaded/reloaded');
 
 // Use native AudioContext
 type AudioContextType = typeof AudioContext;
@@ -25,10 +25,10 @@ class SoundEngine {
     if (!this.ctx || this.ctx.state === 'closed') {
       this.ctx = new AudioContextClass();
       this.contextCreatedAt = Date.now();
-      console.log(`[SoundEngine] NEW AudioContext created. State: ${this.ctx.state}`);
+      console.info(`[SoundEngine] NEW AudioContext created. State: ${this.ctx.state}`);
 
       this.ctx.onstatechange = () => {
-        console.log(`[SoundEngine] AudioContext state changed: -> ${this.ctx?.state}`);
+        console.info(`[SoundEngine] AudioContext state changed: -> ${this.ctx?.state}`);
       };
     }
 
@@ -40,7 +40,7 @@ class SoundEngine {
     const age = Date.now() - this.contextCreatedAt;
     const isStale = age > SoundEngine.MAX_CONTEXT_AGE_MS;
     if (isStale) {
-      console.log(`[SoundEngine] Context is stale (age: ${Math.round(age / 1000)}s)`);
+      console.info(`[SoundEngine] Context is stale (age: ${Math.round(age / 1000)}s)`);
     }
     return isStale;
   }
@@ -48,7 +48,7 @@ class SoundEngine {
   private async ensureContextReady(): Promise<AudioContext> {
     // If context is stale, recreate it
     if (this.isContextStale()) {
-      console.log('[SoundEngine] Recreating stale context...');
+      console.info('[SoundEngine] Recreating stale context...');
       await this.destroy();
     }
 
@@ -56,9 +56,9 @@ class SoundEngine {
 
     if (ctx.state === 'suspended') {
       try {
-        console.log('[SoundEngine] AudioContext suspended. Resuming...');
+        console.info('[SoundEngine] AudioContext suspended. Resuming...');
         await ctx.resume();
-        console.log(`[SoundEngine] Resumed. State: ${ctx.state}`);
+        console.info(`[SoundEngine] Resumed. State: ${ctx.state}`);
       } catch (err) {
         console.error('[SoundEngine] Resume failed:', err);
       }
@@ -69,12 +69,12 @@ class SoundEngine {
 
   private async playHaptic(type: 'success' | 'recovery' | 'skip' | 'countdown' | 'buzzer' | 'tick', isGo?: boolean) {
     if (!this.hapticsSupported) {
-      console.log(`[SoundEngine] Haptics skipped (supported=false) for ${type}`);
+      console.info(`[SoundEngine] Haptics skipped (supported=false) for ${type}`);
       return;
     }
     
     try {
-      console.log(`[SoundEngine] Triggering haptic: ${type}`);
+      console.info(`[SoundEngine] Triggering haptic: ${type}`);
       switch (type) {
         case 'success':
           await Haptics.notification({ type: NotificationType.Success });
@@ -103,15 +103,15 @@ class SoundEngine {
 
   public async init() {
     // Initialize audio context during a user gesture (game start, resume from pause)
-    console.log('[SoundEngine] init() called');
+    console.info('[SoundEngine] init() called');
     try {
       // If context already exists and is usable, just resume it
       if (this.ctx && this.ctx.state !== 'closed') {
-        console.log(`[SoundEngine] Context already exists (state=${this.ctx.state}), resuming`);
+        console.info(`[SoundEngine] Context already exists (state=${this.ctx.state}), resuming`);
         if (this.ctx.state === 'suspended') {
           await this.ctx.resume();
         }
-        console.log(`[SoundEngine] AudioContext ready. State: ${this.ctx.state}`);
+        console.info(`[SoundEngine] AudioContext ready. State: ${this.ctx.state}`);
         return;
       }
 
@@ -121,7 +121,7 @@ class SoundEngine {
         await ctx.resume();
       }
 
-      console.log(`[SoundEngine] AudioContext initialized. State: ${ctx.state}`);
+      console.info(`[SoundEngine] AudioContext initialized. State: ${ctx.state}`);
     } catch (err) {
       console.error('[SoundEngine] init() failed:', err);
     }
@@ -129,11 +129,11 @@ class SoundEngine {
 
   public async destroy() {
     // Close and release the audio context (on pause, game end)
-    console.log('[SoundEngine] destroy() called');
+    console.info('[SoundEngine] destroy() called');
     if (this.ctx) {
       try {
         await this.ctx.close();
-        console.log('[SoundEngine] AudioContext closed');
+        console.info('[SoundEngine] AudioContext closed');
       } catch (e) {
         console.warn('[SoundEngine] Error closing context:', e);
       }
@@ -145,14 +145,14 @@ class SoundEngine {
     // Resume audio context - called when tab becomes visible during active game
     try {
       if (!this.ctx || this.ctx.state === 'closed') {
-        console.log('[SoundEngine] resume() - no context, calling init()');
+        console.info('[SoundEngine] resume() - no context, calling init()');
         await this.init();
         return;
       }
 
       if (this.ctx.state === 'suspended') {
         await this.ctx.resume();
-        console.log(`[SoundEngine] Context resumed. State: ${this.ctx.state}`);
+        console.info(`[SoundEngine] Context resumed. State: ${this.ctx.state}`);
       }
     } catch (err) {
       console.error('[SoundEngine] resume() failed:', err);
@@ -160,13 +160,13 @@ class SoundEngine {
   }
 
   public async playSuccess() {
-    console.log('[SoundEngine] playSuccess() called');
+    console.info('[SoundEngine] playSuccess() called');
     this.playHaptic('success');
     
     try {
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
-      console.log(`[SoundEngine] Scheduling playSuccess tones at t=${t.toFixed(3)}`);
+      console.info(`[SoundEngine] Scheduling playSuccess tones at t=${t.toFixed(3)}`);
 
       this.playTone(523.25, 'sine', t, 0.3);
       this.playTone(659.25, 'sine', t + 0.05, 0.3);
@@ -177,13 +177,13 @@ class SoundEngine {
   }
 
   public async playRecovery() {
-    console.log('[SoundEngine] playRecovery() called');
+    console.info('[SoundEngine] playRecovery() called');
     this.playHaptic('recovery');
     
     try {
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
-      console.log(`[SoundEngine] Scheduling playRecovery at t=${t.toFixed(3)}`);
+      console.info(`[SoundEngine] Scheduling playRecovery at t=${t.toFixed(3)}`);
 
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -208,13 +208,13 @@ class SoundEngine {
   }
 
   public async playSkip() {
-    console.log('[SoundEngine] playSkip() called');
+    console.info('[SoundEngine] playSkip() called');
     try {
       this.playHaptic('skip');
       
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
-      console.log(`[SoundEngine] Scheduling playSkip at t=${t.toFixed(3)}`);
+      console.info(`[SoundEngine] Scheduling playSkip at t=${t.toFixed(3)}`);
 
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -236,13 +236,13 @@ class SoundEngine {
   }
 
   public async playCountdown(isGo: boolean = false) {
-    console.log(`[SoundEngine] playCountdown(isGo=${isGo}) called`);
+    console.info(`[SoundEngine] playCountdown(isGo=${isGo}) called`);
     try {
       this.playHaptic('countdown', isGo);
       
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
-      console.log(`[SoundEngine] Scheduling countdown at t=${t.toFixed(3)}`);
+      console.info(`[SoundEngine] Scheduling countdown at t=${t.toFixed(3)}`);
 
       if (isGo) {
         this.playTone(1046.5, 'square', t, 0.6, 0.4); // C6
@@ -257,13 +257,13 @@ class SoundEngine {
   }
 
   public async playBuzzer() {
-    console.log('[SoundEngine] playBuzzer() called');
+    console.info('[SoundEngine] playBuzzer() called');
     try {
       this.playHaptic('buzzer');
       
       const ctx = await this.ensureContextReady();
       const t = ctx.currentTime;
-      console.log(`[SoundEngine] Scheduling buzzer at t=${t.toFixed(3)}`);
+      console.info(`[SoundEngine] Scheduling buzzer at t=${t.toFixed(3)}`);
 
       const pulseCount = 4;
       const pulseDuration = 0.12;
@@ -300,7 +300,7 @@ class SoundEngine {
           osc.stop(startTime + pulseDuration);
         });
       }
-      console.log(`[SoundEngine] playBuzzer scheduled ${pulseCount} pulses, ends at t=${(t + pulseCount * (pulseDuration + gap)).toFixed(3)}`);
+      console.info(`[SoundEngine] playBuzzer scheduled ${pulseCount} pulses, ends at t=${(t + pulseCount * (pulseDuration + gap)).toFixed(3)}`);
 
     } catch (err) {
       console.error('[SoundEngine] Failed in playBuzzer:', err);
@@ -308,7 +308,7 @@ class SoundEngine {
   }
 
   public async playUrgentTick() {
-    console.log('[SoundEngine] playUrgentTick() called');
+    console.info('[SoundEngine] playUrgentTick() called');
     try {
       this.playHaptic('tick');
 
@@ -329,7 +329,7 @@ class SoundEngine {
       gain.connect(ctx.destination);
       osc.start(t);
       osc.stop(t + duration);
-      console.log(`[SoundEngine] playUrgentTick scheduled at t=${t.toFixed(3)}`);
+      console.info(`[SoundEngine] playUrgentTick scheduled at t=${t.toFixed(3)}`);
     } catch (err) {
       console.error('[SoundEngine] Failed in playUrgentTick:', err);
     }
@@ -379,7 +379,7 @@ class SoundEngine {
 
       osc.start(startTime);
       osc.stop(startTime + duration);
-      console.log(`[SoundEngine] playTone SUCCESS: ${freq}Hz, ${type}, duration=${duration}s`);
+      console.info(`[SoundEngine] playTone SUCCESS: ${freq}Hz, ${type}, duration=${duration}s`);
     } catch (e) {
       console.error(`[SoundEngine] playTone FAILED: ${freq}Hz`, e);
     }
@@ -390,12 +390,12 @@ export const soundEngine = new SoundEngine();
 
 // Debug helper - call from browser console: window.testAudio()
 (window as unknown as { testAudio: () => void }).testAudio = () => {
-  console.log('[TEST] Testing audio...');
+  console.info('[TEST] Testing audio...');
   const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-  console.log(`[TEST] Created context. State: ${ctx.state}`);
+  console.info(`[TEST] Created context. State: ${ctx.state}`);
 
   ctx.resume().then(() => {
-    console.log(`[TEST] Context resumed. State: ${ctx.state}`);
+    console.info(`[TEST] Context resumed. State: ${ctx.state}`);
 
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -410,6 +410,6 @@ export const soundEngine = new SoundEngine();
     osc.start();
     osc.stop(ctx.currentTime + 0.5);
 
-    console.log('[TEST] Playing 440Hz tone for 0.5s...');
+    console.info('[TEST] Playing 440Hz tone for 0.5s...');
   });
 };

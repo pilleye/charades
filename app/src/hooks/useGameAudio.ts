@@ -3,37 +3,37 @@ import { soundEngine } from '../lib/audio';
 
 export function useGameAudio() {
   const playCorrect = useCallback(() => {
-    console.log('[useGameAudio] playCorrect()');
+    console.info('[useGameAudio] playCorrect()');
     soundEngine.playSuccess();
   }, []);
 
   const playSkip = useCallback(() => {
-    console.log('[useGameAudio] playSkip()');
+    console.info('[useGameAudio] playSkip()');
     soundEngine.playSkip();
   }, []);
 
   const playTimeUp = useCallback(() => {
-    console.log('[useGameAudio] playTimeUp()');
+    console.info('[useGameAudio] playTimeUp()');
     soundEngine.playBuzzer();
   }, []);
 
   const playCountdown = useCallback(() => {
-    console.log('[useGameAudio] playCountdown()');
+    console.info('[useGameAudio] playCountdown()');
     soundEngine.playCountdown(true);
   }, []);
 
   const playReadyBeep = useCallback(() => {
-    console.log('[useGameAudio] playReadyBeep()');
+    console.info('[useGameAudio] playReadyBeep()');
     soundEngine.playCountdown(false);
   }, []);
 
   const playTick = useCallback((freq?: number, volume?: number) => {
-    // console.log('[useGameAudio] playTick()'); // Too noisy
+    // console.info('[useGameAudio] playTick()'); // Too noisy
     soundEngine.playTick(freq, volume);
   }, []);
 
   const playUrgentTick = useCallback(() => {
-    console.log('[useGameAudio] playUrgentTick()');
+    console.info('[useGameAudio] playUrgentTick()');
     soundEngine.playUrgentTick();
   }, []);
 

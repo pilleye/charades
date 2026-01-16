@@ -20,8 +20,8 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
-      // Warn on console.log but allow console.error/warn for error handling
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      // Warn on console.log but allow tracing methods
+      'no-console': ['warn', { allow: ['warn', 'error', 'info', 'debug'] }],
       // Enforce consistent return statements
       'consistent-return': 'error',
       // Prefer const over let when variable is never reassigned

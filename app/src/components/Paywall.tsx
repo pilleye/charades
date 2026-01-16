@@ -43,21 +43,23 @@ export const Paywall: React.FC<PaywallProps> = ({ isOpen, onClose, trigger }) =>
 
   // Timer tick
   useEffect(() => {
-    if (!offerEndTime) return;
+    let interval: ReturnType<typeof setInterval> | null = null;
 
-    const tick = () => {
-      const remaining = Math.max(0, offerEndTime - Date.now());
-      setTimeLeft(remaining);
+    if (offerEndTime) {
+      const tick = () => {
+        setTimeLeft(Math.max(0, offerEndTime - Date.now()));
+      };
+
+      tick(); // Initial
+      interval = setInterval(tick, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
     };
-
-    tick(); // Initial
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
   }, [offerEndTime]);
 
   const isOfferActive = timeLeft > 0;
-  // If it's a short reactivation (<= 5 mins), treat it as a "Flash Sale"
-  const isFlashSale = isOfferActive && (offerEndTime! - timeLeft < (Date.now() - 1000) && timeLeft <= 5 * 60 * 1000); 
   
   // Determine active product and price
   const activeProductId = isOfferActive ? PRODUCT_ID_DISCOUNT : PRODUCT_ID_FULL;

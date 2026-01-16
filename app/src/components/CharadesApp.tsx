@@ -27,23 +27,23 @@ export const CharadesApp: React.FC = () => {
 
     // Game just started (transitioned from SETUP to active phase)
     if (isGameActive && !wasGameActive) {
-      console.log('[CharadesApp] Game started - initializing audio');
+      console.info('[CharadesApp] Game started - initializing audio');
       soundEngine.init();
     }
 
     // Game just ended (transitioned to SETUP or GAME_OVER)
     if (!isGameActive && wasGameActive) {
-      console.log('[CharadesApp] Game ended - destroying audio');
+      console.info('[CharadesApp] Game ended - destroying audio');
       soundEngine.destroy();
     }
 
     // Handle pause/unpause during active turn
     if (gameState.phase === GamePhase.ACTIVE_TURN) {
       if (isPaused && !prevPausedRef.current) {
-        console.log('[CharadesApp] Game paused - destroying audio');
+        console.info('[CharadesApp] Game paused - destroying audio');
         soundEngine.destroy();
       } else if (!isPaused && prevPausedRef.current) {
-        console.log('[CharadesApp] Game resumed - initializing audio');
+        console.info('[CharadesApp] Game resumed - initializing audio');
         soundEngine.init();
       }
     }
