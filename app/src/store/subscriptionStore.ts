@@ -115,11 +115,18 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         set({ status: 'checking' });
 
         try {
+          console.info('[IAP] Fetching products:', ALL_PRODUCT_IDS);
           // Get products from App Store
           const { products: storeProducts } = await NativePurchases.getProducts({
             productIdentifiers: ALL_PRODUCT_IDS,
             productType: PURCHASE_TYPE.SUBS,
           });
+
+          console.info('[IAP] Products found from store:', storeProducts.map(p => p.identifier));
+
+          if (storeProducts.length === 0) {
+            console.warn('[IAP] No products were returned from the App Store. Check Bundle ID and Product IDs.');
+          }
 
           const productsMap: Record<string, ProductInfo> = {};
           storeProducts.forEach((p) => {
@@ -134,9 +141,10 @@ export const useSubscriptionStore = create<SubscriptionState>()(
 
           // Check current purchases (active subscriptions)
           const { purchases } = await NativePurchases.getPurchases();
+          console.info('[IAP] Active purchases count:', purchases.length);
 
           const hasActiveSubscription = purchases.some(
-            (t) => ALL_PRODUCT_IDS.includes(t.productIdentifier) && isSubscriptionActive(t)
+            (t) => ALL_PRODUCT_IDS.includes(t.productIdentifier || (t as any).identifier) && isSubscriptionActive(t)
           );
 
           set({
@@ -160,6 +168,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         }
 
         try {
+          console.info('[IAP] Starting purchase for:', productId);
           set({ error: null });
 
           const transaction = await NativePurchases.purchaseProduct({

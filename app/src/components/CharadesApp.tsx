@@ -12,13 +12,22 @@ import { Review } from './Review';
 import { Scoreboard } from './Scoreboard';
 import { SecondChanceRound } from './SecondChanceRound';
 
+import { useSubscriptionStore } from '@/store/subscriptionStore';
+
 export const CharadesApp: React.FC = () => {
   const gameState = useGameStore((state) => state.gameState);
+  const initializeIAP = useSubscriptionStore((state) => state.initialize);
+  
   const prevPhaseRef = useRef<GamePhase>(gameState.phase);
   const prevPausedRef = useRef<boolean>(false);
 
   // Get isPaused only when in ACTIVE_TURN phase
   const isPaused = gameState.phase === GamePhase.ACTIVE_TURN ? gameState.isPaused : false;
+
+  // Initialize IAP on mount
+  useEffect(() => {
+    initializeIAP();
+  }, [initializeIAP]);
 
   // Manage audio context lifecycle based on game state
   useEffect(() => {

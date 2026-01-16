@@ -17,21 +17,21 @@
 
   ],
   "settings" : {
-    "_applicationInternalID" : "6757927214",
     "_askToBuyEnabled" : false,
     "_billingGracePeriodEnabled" : false,
     "_billingIssuesEnabled" : false,
-    "_developerTeamID" : "BA25Z59SHW",
+    "_compatibilityTimeRate" : {
+      "3" : 6
+    },
     "_disableDialogs" : false,
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 790286203.62878704,
     "_locale" : "en_US",
     "_renewalBillingIssuesEnabled" : false,
     "_storefront" : "USA",
     "_storeKitErrors" : [
 
     ],
-    "_timeRate" : 0
+    "_timeRate" : 1001
   },
   "subscriptionGroups" : [
     {
@@ -39,7 +39,7 @@
       "localizations" : [
 
       ],
-      "name" : "Premium",
+      "name" : "Charades Premium",
       "subscriptions" : [
         {
           "adHocOffers" : [
@@ -48,17 +48,21 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "4.99",
-          "familyShareable" : false,
-          "groupNumber" : 2,
-          "internalID" : "6757927251",
+          "displayPrice" : "9.99",
+          "familyShareable" : true,
+          "groupNumber" : 1,
+          "internalID" : "6757927283",
           "introductoryOffer" : null,
           "localizations" : [
-
+            {
+              "description" : "",
+              "displayName" : "Premium Subscription",
+              "locale" : "en_US"
+            }
           ],
-          "productID" : "charades_premium_yearly_499",
+          "productID" : "charades_premium_yearly_999",
           "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "Premium Discounted",
+          "referenceName" : "Premium Subscription",
           "subscriptionGroupID" : "21894581",
           "type" : "RecurringSubscription",
           "winbackOffers" : [
@@ -72,17 +76,21 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "9.99",
-          "familyShareable" : false,
+          "displayPrice" : "4.99",
+          "familyShareable" : true,
           "groupNumber" : 1,
-          "internalID" : "6757927283",
+          "internalID" : "98640F68",
           "introductoryOffer" : null,
           "localizations" : [
-
+            {
+              "description" : "",
+              "displayName" : "Premium Subscription",
+              "locale" : "en_US"
+            }
           ],
-          "productID" : "charades_premium_yearly_999",
+          "productID" : "charades_premium_yearly_499",
           "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "Premium Full Price",
+          "referenceName" : "Premium Subscription (Discounted)",
           "subscriptionGroupID" : "21894581",
           "type" : "RecurringSubscription",
           "winbackOffers" : [
